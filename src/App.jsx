@@ -12,7 +12,8 @@ function App() {
   const [selectedSlots, setSelectedSlots] = useState([])
   const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
   const [customTime, setCustomTime] = useState('')
-  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '冰雷', bosses: [] })
+  // 修改點：將 job 預設值改為空字串 ''
+  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '', bosses: [] })
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(false)
   
@@ -71,6 +72,11 @@ function App() {
 
   const handleSave = async () => {
     if (!session) return alert("請先登入 Discord 帳號！");
+    
+    // 修改點：增加防呆檢查，確保名字和職業都有填寫
+    if (!roleInfo.displayName.trim()) return alert("請填寫顯示名稱！");
+    if (!roleInfo.job) return alert("請選擇你的職業！");
+
     setLoading(true);
     const { error } = await supabase.from('schedules').upsert({
       user_id: session.user.id,
@@ -82,7 +88,7 @@ function App() {
       job: roleInfo.job,
       bosses: roleInfo.bosses,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id,week_date' });
+    }, { onConflict: ['user_id', 'week_date'] }); // 這裡已修正為陣列格式預防衝突
     
     setTimeout(() => {
       setLoading(false);
@@ -127,7 +133,6 @@ function App() {
                 </button>
               </>
             ) : (
-              /* 恢復：登入按鈕 */
               <button onClick={handleLogin} className="flex items-center gap-2 bg-[#5865F2] text-white px-4 py-1.5 rounded-full text-xs font-black shadow-md hover:bg-[#4752C4] transition-all active:scale-95">
                 <LogIn size={16}/> Login with Discord
               </button>
@@ -140,7 +145,6 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* 左側面板 */}
           <div className="lg:col-span-3 space-y-5">
-            {/* 優化：使用說明欄位文案排列 */}
             <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
               <h3 className="text-xs font-black text-[#5D4037] mb-4 flex items-center gap-2">
                 <Info size={16} className="text-[#D35400]"/> 快速上手指南
@@ -179,7 +183,9 @@ function App() {
                 <input type="text" placeholder="顯示名稱 / ID" value={roleInfo.displayName} onChange={(e)=>setRoleInfo({...roleInfo, displayName:e.target.value})} className="w-full bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors" />
                 <div className="grid grid-cols-2 gap-2">
                   <input type="number" placeholder="Lv (等級)" value={roleInfo.level} onChange={(e)=>setRoleInfo({...roleInfo, level:e.target.value})} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors" />
+                  {/* 修改點：增加了預設空白選項 */}
                   <select value={roleInfo.job} onChange={(e)=>setRoleInfo({...roleInfo, job:e.target.value})} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-2 py-2 text-xs font-bold outline-none">
+                    <option value="" disabled>請選擇職業</option>
                     {JOBS.map(j => <option key={j} value={j}>{j}</option>)}
                   </select>
                 </div>
@@ -281,7 +287,6 @@ function App() {
           </div>
         </div>
 
-        {/* 成團戰報 (保留所有功能與 Boss 標籤) */}
         {viewMode === 'team' && (
           <section className="bg-white p-6 rounded-[32px] border border-[#EADBC8] shadow-sm">
             <div className="flex items-center gap-2.5 mb-6">
