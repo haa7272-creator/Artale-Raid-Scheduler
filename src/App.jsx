@@ -57,7 +57,7 @@ function App() {
         setRoleInfo({ 
           displayName: me.user_name || '',
           level: me.level || '', 
-          job: me.job || '冰雷', 
+          job: me.job || '', 
           bosses: me.bosses || [] 
         });
       }
