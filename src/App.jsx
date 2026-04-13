@@ -194,9 +194,18 @@ function App() {
             <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
               <h3 className="text-[10px] font-black text-[#A67C52] mb-3 uppercase tracking-widest flex items-center gap-2"><CalIcon size={14}/> SCHEDULE WEEK</h3>
               <div className="flex items-center gap-2">
-                <button onClick={()=>setBaseDate(new Date(baseDate.setDate(baseDate.getDate()-7)))} className="p-1.5 text-[#D35400] active:scale-90"><ChevronLeft size={18}/></button>
-                <div className="flex-1 text-center font-bold text-xs bg-[#FDFBF7] py-1.5 rounded-lg border border-[#EADBC8]">{weekDateStr}</div>
-                <button onClick={()=>setBaseDate(new Date(baseDate.setDate(baseDate.getDate()+7)))} className="p-1.5 text-[#D35400] active:scale-90"><ChevronRight size={18}/></button>
+                <button onClick={()=>{
+                  setBaseDate(new Date(baseDate.setDate(baseDate.getDate()-7)));
+                  setSelectedSlots([]);
+                }} className="...">
+                  <ChevronLeft size={18}/>
+                </button>
+                <button onClick={()=>{
+                  setBaseDate(new Date(baseDate.setDate(baseDate.getDate()+7)));
+                  setSelectedSlots([]);
+                }} className="...">
+                  <ChevronRight size={18}/>
+                </button>
               </div>
             </section>
 
