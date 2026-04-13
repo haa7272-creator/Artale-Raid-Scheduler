@@ -344,7 +344,7 @@ function App() {
             
             <div className="flex items-center gap-4 shrink-0">
               <div className="flex items-center gap-2 px-5 py-2.5 bg-[#5865F2] rounded-2xl text-white shadow-md transition-transform hover:scale-105">
-               <span className="text-[12px] font-bold"><Discord />24_vincent</span>
+               <span className="text-[12px] font-bold">24_vincent</span>
               </div>
                <a 
                  href="https://www.instagram.com/24.vincent"
