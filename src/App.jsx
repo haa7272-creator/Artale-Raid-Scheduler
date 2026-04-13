@@ -30,9 +30,9 @@ function App() {
     const d = new Date(baseDate);
     d.setDate(baseDate.getDate() + i);
     return {
-      dayName: ['日', '一', '二', '三', '四', '五', '六'][i],
+      dayName: ['一', '二', '三', '四', '五', '六', '日'][i],
       dateNum: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
-      isWeekend: i === 0 || i === 6
+      isWeekend: i === 5 || i === 6
     };
   });
 
