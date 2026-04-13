@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
-import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, Target, User, Loader2 } from 'lucide-react'
-// 請在最上方的匯入名單中加入 Instagram
-import { Instagram, Calendar as CalIcon, Clock, ... } from 'lucide-react'
+import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, Target, User, Loader2, Instagram } from 'lucide-react'
 
 const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
 const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒', '冰雷', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
@@ -364,15 +362,10 @@ function App() {
             &copy; {new Date().getFullYear()} Artale Raid Hub. All rights reserved.
           </div>
         </div>
-      </footer>
-
-    </div> // 這是原本 App.jsx 最外層的結尾 div
-  )
-}
-
-
     </div>
-  )
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
