@@ -16,14 +16,14 @@ function App() {
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(false)
   
-  const getSun = (d) => {
+  const getMon = (d) => {
     const date = new Date(d);
     date.setHours(0, 0, 0, 0);
     const day = date.getDay();
-    const diff = date.getDate() - day;
+    const diff = date.getDate() - (day === 0 ? 6 : day - 1);
     return new Date(date.setDate(diff));
   }
-  const [baseDate, setBaseDate] = useState(getSun(new Date()))
+  const [baseDate, setBaseDate] = useState(getMon(new Date()))
   const weekDateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, '0')}-${String(baseDate.getDate()).padStart(2, '0')}`;
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
