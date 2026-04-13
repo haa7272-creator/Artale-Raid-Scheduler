@@ -1,0 +1,327 @@
+import React, { useState, useEffect } from 'react'
+import { supabase } from './supabaseClient'
+import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, Target, User, Loader2 } from 'lucide-react'
+
+const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
+const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒', '冰雷', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
+const DEFAULT_TIMES = ['09:30', '10:00', '10:30', '19:00', '19:30', '21:00', '22:00', '22:30', '23:00'];
+
+function App() {
+  const [session, setSession] = useState(null)
+  const [viewMode, setViewMode] = useState('personal')
+  const [selectedSlots, setSelectedSlots] = useState([])
+  const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
+  const [customTime, setCustomTime] = useState('')
+  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '冰雷', bosses: [] })
+  const [allData, setAllData] = useState([])
+  const [loading, setLoading] = useState(false)
+  
+  const getSun = (d) => {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day;
+    return new Date(date.setDate(diff));
+  }
+  const [baseDate, setBaseDate] = useState(getSun(new Date()))
+  const weekDateStr = baseDate.toISOString().split('T')[0];
+
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(baseDate);
+    d.setDate(baseDate.getDate() + i);
+    return {
+      dayName: ['日', '一', '二', '三', '四', '五', '六'][i],
+      dateNum: `${d.getMonth() + 1}/${d.getDate()}`,
+      isWeekend: i === 0 || i === 6
+    };
+  });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      loadData(session?.user?.id, weekDateStr);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, [weekDateStr]);
+
+  const loadData = async (uid, date) => {
+    const { data: team } = await supabase.from('schedules').select('*').eq('week_date', date);
+    setAllData(team || []);
+    if (uid) {
+      const { data: me } = await supabase.from('schedules').select('*').eq('user_id', uid).eq('week_date', date).maybeSingle();
+      if (me) {
+        setSelectedSlots(me.slots || []);
+        if (me.active_times) setActiveTimes(me.active_times);
+        setRoleInfo({ 
+          displayName: me.user_name || '',
+          level: me.level || '', 
+          job: me.job || '冰雷', 
+          bosses: me.bosses || [] 
+        });
+      }
+    }
+  }
+
+  const toggleSlot = (sid) => {
+    if (viewMode !== 'personal') return;
+    setSelectedSlots(prev => prev.includes(sid) ? prev.filter(s => s !== sid) : [...prev, sid]);
+  }
+
+  const handleSave = async () => {
+    if (!session) return alert("請先登入 Discord 帳號！");
+    setLoading(true);
+    const { error } = await supabase.from('schedules').upsert({
+      user_id: session.user.id,
+      user_name: roleInfo.displayName,
+      week_date: weekDateStr,
+      slots: selectedSlots,
+      active_times: activeTimes,
+      level: roleInfo.level,
+      job: roleInfo.job,
+      bosses: roleInfo.bosses,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,week_date' });
+    
+    setTimeout(() => {
+      setLoading(false);
+      if (!error) {
+        alert('🍁 數據同步成功！');
+        loadData(session.user.id, weekDateStr);
+      } else {
+        alert('儲存失敗：' + error.message);
+      }
+    }, 400);
+  }
+
+  const handleLogin = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'discord' });
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] text-[#4A3728] font-sans pb-10 text-left">
+      <header className="bg-white border-b border-[#EADBC8] px-8 py-3 shadow-sm sticky top-0 z-50">
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#8B4513] p-2 rounded-xl text-white shadow-md"><Sword size={20}/></div>
+            <div>
+              <h1 className="text-lg font-black tracking-tight text-[#5D4037]">ARTALE <span className="text-[#D35400]">RAID HUB</span></h1>
+              <p className="text-[9px] text-[#A67C52] font-bold uppercase tracking-widest">Elite Squad Coordinator</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {session ? (
+              <>
+                <div className="flex items-center gap-3 bg-[#F5EFE6] pl-3 pr-1 py-1 rounded-full border border-[#EADBC8]">
+                  <span className="text-[11px] font-black text-[#5D4037]">{roleInfo.displayName || '載入中...'}</span>
+                  <img src={session.user.user_metadata.avatar_url} className="w-7 h-7 rounded-full border-2 border-white shadow-sm" />
+                </div>
+                <button onClick={handleLogout} className="p-2 text-[#A67C52] hover:text-[#D35400] transition-colors" title="登出">
+                  <LogOut size={18}/>
+                </button>
+              </>
+            ) : (
+              /* 恢復：登入按鈕 */
+              <button onClick={handleLogin} className="flex items-center gap-2 bg-[#5865F2] text-white px-4 py-1.5 rounded-full text-xs font-black shadow-md hover:bg-[#4752C4] transition-all active:scale-95">
+                <LogIn size={16}/> Login with Discord
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-[1400px] mx-auto mt-6 px-4 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          {/* 左側面板 */}
+          <div className="lg:col-span-3 space-y-5">
+            {/* 優化：使用說明欄位文案排列 */}
+            <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
+              <h3 className="text-xs font-black text-[#5D4037] mb-4 flex items-center gap-2">
+                <Info size={16} className="text-[#D35400]"/> 快速上手指南
+              </h3>
+              <div className="space-y-2.5">
+                <div className="flex gap-2">
+                  <span className="text-[#D35400] font-black text-[10px] mt-0.5">01</span>
+                  <p className="text-[10px] leading-relaxed text-[#8B735B]">
+                    登入後請於下方填寫 <span className="font-bold">顯示名稱</span> 與 <span className="font-bold text-[#5D4037]">等級</span>。
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-[#D35400] font-black text-[10px] mt-0.5">02</span>
+                  <p className="text-[10px] leading-relaxed text-[#8B735B]">
+                    在右側表格點擊時段，選中會標註為 <span className="text-[#D35400] font-black">橘色方格</span>。
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-[#D35400] font-black text-[10px] mt-0.5">03</span>
+                  <p className="text-[10px] leading-relaxed text-[#8B735B]">
+                    點擊 <span className="text-[#5D4037] font-black italic">Sync Data</span> 同步至雲端，確保成員可見。
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-[#D35400] font-black text-[10px] mt-0.5">04</span>
+                  <p className="text-[10px] leading-relaxed text-[#8B735B]">
+                    切換 <span className="font-bold text-[#5D4037]">團隊統整</span> 即可即時查看每週開團概況。
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm space-y-4">
+              <h3 className="text-[10px] font-black text-[#A67C52] uppercase tracking-widest flex items-center gap-2"><User size={14}/> ADVENTURER INFO</h3>
+              <div className="space-y-3">
+                <input type="text" placeholder="顯示名稱 / ID" value={roleInfo.displayName} onChange={(e)=>setRoleInfo({...roleInfo, displayName:e.target.value})} className="w-full bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="number" placeholder="Lv (等級)" value={roleInfo.level} onChange={(e)=>setRoleInfo({...roleInfo, level:e.target.value})} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors" />
+                  <select value={roleInfo.job} onChange={(e)=>setRoleInfo({...roleInfo, job:e.target.value})} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-2 py-2 text-xs font-bold outline-none">
+                    {JOBS.map(j => <option key={j} value={j}>{j}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#F5EFE6]">
+                {BOSS_LIST.map(b => (
+                  <button key={b} onClick={()=>{
+                    const n = roleInfo.bosses.includes(b) ? roleInfo.bosses.filter(x=>x!==b) : [...roleInfo.bosses, b];
+                    setRoleInfo({...roleInfo, bosses:n});
+                  }} className={`px-2 py-1 rounded-md text-[9px] font-bold border transition-all active:scale-95 ${roleInfo.bosses.includes(b)?'bg-[#D35400] text-white border-[#D35400] shadow-sm':'bg-[#FDFBF7] text-[#A67C52] border-[#EADBC8]'}`}>{b}</button>
+                ))}
+              </div>
+            </section>
+
+            <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
+              <h3 className="text-[10px] font-black text-[#A67C52] mb-3 uppercase tracking-widest flex items-center gap-2"><CalIcon size={14}/> SCHEDULE WEEK</h3>
+              <div className="flex items-center gap-2">
+                <button onClick={()=>setBaseDate(new Date(baseDate.setDate(baseDate.getDate()-7)))} className="p-1.5 text-[#D35400] active:scale-90"><ChevronLeft size={18}/></button>
+                <div className="flex-1 text-center font-bold text-xs bg-[#FDFBF7] py-1.5 rounded-lg border border-[#EADBC8]">{weekDateStr}</div>
+                <button onClick={()=>setBaseDate(new Date(baseDate.setDate(baseDate.getDate()+7)))} className="p-1.5 text-[#D35400] active:scale-90"><ChevronRight size={18}/></button>
+              </div>
+            </section>
+
+            <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
+              <h3 className="text-[10px] font-black text-[#A67C52] mb-3 uppercase tracking-widest flex items-center gap-2"><Clock size={14}/> QUICK ACCESS TIMES</h3>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {DEFAULT_TIMES.map(t => (
+                  <button key={t} onClick={()=>{ if(!activeTimes.includes(t)) setActiveTimes([...activeTimes, t].sort()) }} className="px-1.5 py-1 bg-[#F5EFE6] text-[#A67C52] rounded-md text-[9px] font-bold hover:bg-[#D35400] hover:text-white active:scale-95 transition-all">+{t}</button>
+                ))}
+              </div>
+              <div className="flex gap-1 mb-4">
+                <input type="text" placeholder="00:00" value={customTime} onChange={(e)=>setCustomTime(e.target.value)} className="flex-1 bg-[#FDFBF7] border border-[#EADBC8] rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none" />
+                <button onClick={()=>{ if(customTime && !activeTimes.includes(customTime)){setActiveTimes([...activeTimes, customTime].sort()); setCustomTime('')} }} className="bg-[#8B4513] text-white p-1.5 rounded-lg active:scale-90 transition-transform"><Plus size={14}/></button>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[#F5EFE6]">
+                {activeTimes.map(t => (
+                  <div key={t} className="bg-[#FDFBF7] px-2 py-1 rounded-md text-[9px] font-black text-[#D35400] border border-[#EADBC8] flex items-center gap-1 group">
+                    {t} <button onClick={()=>setActiveTimes(activeTimes.filter(x=>x!==t))} className="text-[#A67C52] hover:text-red-500 active:scale-90 transition-all"><Trash2 size={10}/></button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* 右側表格 */}
+          <div className="lg:col-span-9 bg-white p-6 rounded-[32px] border border-[#EADBC8] shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+              <div className="flex bg-[#F5EFE6] p-1 rounded-xl border border-[#EADBC8] w-full md:w-auto">
+                <button onClick={()=>setViewMode('personal')} className={`flex-1 md:flex-none px-8 py-2 rounded-lg text-xs font-black transition-all ${viewMode==='personal'?'bg-[#D35400] text-white shadow-md':'text-[#A67C52]'}`}>個人排班</button>
+                <button onClick={()=>setViewMode('team')} className={`flex-1 md:flex-none px-8 py-2 rounded-lg text-xs font-black transition-all ${viewMode==='team'?'bg-[#5D4037] text-white shadow-md':'text-[#A67C52]'}`}>團隊統整</button>
+              </div>
+              <button 
+                onClick={handleSave} 
+                disabled={loading}
+                className={`w-full md:w-auto px-10 py-2.5 rounded-xl font-black text-xs shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 transform ${loading ? 'bg-[#A67C52] opacity-80' : 'bg-[#D35400] hover:bg-[#A04000] text-white'}`}
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16}/>}
+                {loading ? 'SAVING...' : 'SYNC DATA'}
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-[#EADBC8]/30">
+              <div className="min-w-[800px] grid grid-cols-8 gap-2 p-2">
+                <div className="h-10"></div>
+                {weekDates.map(d => (
+                  <div key={d.dayName} className={`text-center p-2 rounded-xl border ${d.isWeekend ? 'bg-[#FFF5F0] border-[#FFD8C4]' : 'bg-[#FDFBF7] border-[#EADBC8]'}`}>
+                    <div className={`text-[9px] font-black uppercase tracking-widest ${d.isWeekend ? 'text-[#D35400]' : 'text-[#A67C52]'}`}>週{d.dayName}</div>
+                    <div className={`text-xs font-black mt-0.5 ${d.isWeekend ? 'text-[#D35400]' : 'text-[#5D4037]'}`}>{d.dateNum}</div>
+                  </div>
+                ))}
+                {activeTimes.map(time => (
+                  <React.Fragment key={time}>
+                    <div className="flex items-center justify-end pr-3 text-[10px] font-black text-[#A67C52] italic">{time}</div>
+                    {weekDates.map(d => {
+                      const sid = `${d.dayName}-${time}`;
+                      const players = allData.filter(p => p.slots?.includes(sid));
+                      const isSelected = selectedSlots.includes(sid);
+                      return (
+                        <div key={sid} onClick={() => toggleSlot(sid)} className={`min-h-[110px] p-2 rounded-[20px] border-2 transition-all active:scale-[0.98] ${viewMode === 'personal' ? (isSelected ? "bg-[#D35400] border-[#A04000] shadow-inner" : "bg-[#FDFBF7] border-[#EADBC8]/40 cursor-pointer") : (players.length > 0 ? "bg-white border-[#EADBC8]" : "bg-transparent border-dashed border-[#EADBC8]/20")}`}>
+                          {viewMode === 'team' && players.map((p, i) => (
+                            <div key={i} className="mb-1 p-1.5 rounded-lg text-[8px] font-bold border-l-2 bg-[#FDFBF7] border-[#D35400] shadow-sm">
+                              <div className="flex justify-between items-center mb-0.5">
+                                <span className="truncate">{p.user_name}</span>
+                                <span className="text-[#D35400] shrink-0">Lv.{p.level}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                <span className="text-[#A67C52]">{p.job}</span>
+                                {p.bosses?.map(b => <span key={b} className="bg-[#F5EFE6] px-1 rounded-[2px] scale-90 origin-left text-[7px]">#{b}</span>)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 成團戰報 (保留所有功能與 Boss 標籤) */}
+        {viewMode === 'team' && (
+          <section className="bg-white p-6 rounded-[32px] border border-[#EADBC8] shadow-sm">
+            <div className="flex items-center gap-2.5 mb-6">
+              <div className="bg-[#D35400] p-2 rounded-xl text-white shadow-md"><Flag size={18}/></div>
+              <h2 className="text-lg font-black text-[#5D4037] tracking-tight">成團戰報</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              {activeTimes.flatMap(t => weekDates.map(d => ({sid:`${d.dayName}-${t}`, day:d.dayName, date:d.dateNum, time:t}))).map(slot => {
+                const members = allData.filter(p => p.slots?.includes(slot.sid));
+                if (members.length === 0) return null;
+                return (
+                  <div key={slot.sid} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-[24px] p-4 shadow-sm hover:border-[#D35400] transition-colors">
+                    <div className="mb-3">
+                      <div className="text-[9px] font-black text-[#A67C52] uppercase">週{slot.day} {slot.date}</div>
+                      <div className="text-sm font-black text-[#5D4037]">{slot.time} 突擊小隊</div>
+                    </div>
+                    <div className="space-y-1.5">
+                      {members.map((m, mi) => (
+                        <div key={mi} className="text-[10px] p-2 bg-white rounded-lg border border-[#EADBC8] shadow-sm">
+                          <div className="flex justify-between font-bold text-[#5D4037] mb-1">
+                            <span>{m.user_name} <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span></span>
+                            <span className="text-[#A67C52] font-medium">{m.job}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {m.bosses?.map(b => (
+                              <span key={b} className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]">{b}</span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  )
+}
+
+export default App
