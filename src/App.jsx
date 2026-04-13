@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
-// 修改後應該長這樣（確保括號內沒有 Instagram）
-import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag } from 'lucide-react';
+import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, User, Loader2 } from 'lucide-react';
 
 const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
 const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒', '冰雷', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
@@ -13,7 +12,6 @@ function App() {
   const [selectedSlots, setSelectedSlots] = useState([])
   const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
   const [customTime, setCustomTime] = useState('')
-  // 修改點：將 job 預設值改為空字串 ''
   const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '', bosses: [] })
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(false)
@@ -73,8 +71,6 @@ function App() {
 
   const handleSave = async () => {
     if (!session) return alert("請先登入 Discord 帳號！");
-    
-    // 修改點：增加防呆檢查，確保名字和職業都有填寫
     if (!roleInfo.displayName.trim()) return alert("請填寫顯示名稱！");
     if (!roleInfo.job) return alert("請選擇你的職業！");
 
@@ -89,7 +85,7 @@ function App() {
       job: roleInfo.job,
       bosses: roleInfo.bosses,
       updated_at: new Date().toISOString()
-    }, { onConflict: ['user_id', 'week_date'] }); // 這裡已修正為陣列格式預防衝突
+    }, { onConflict: ['user_id', 'week_date'] });
     
     setTimeout(() => {
       setLoading(false);
@@ -127,7 +123,7 @@ function App() {
               <>
                 <div className="flex items-center gap-3 bg-[#F5EFE6] pl-3 pr-1 py-1 rounded-full border border-[#EADBC8]">
                   <span className="text-[11px] font-black text-[#5D4037]">{roleInfo.displayName || '載入中...'}</span>
-                  <img src={session.user.user_metadata.avatar_url} className="w-7 h-7 rounded-full border-2 border-white shadow-sm" />
+                  <img src={session.user.user_metadata.avatar_url} className="w-7 h-7 rounded-full border-2 border-white shadow-sm" alt="avatar" />
                 </div>
                 <button onClick={handleLogout} className="p-2 text-[#A67C52] hover:text-[#D35400] transition-colors" title="登出">
                   <LogOut size={18}/>
@@ -166,13 +162,7 @@ function App() {
                 <div className="flex gap-2">
                   <span className="text-[#D35400] font-black text-[10px] mt-0.5">03</span>
                   <p className="text-[10px] leading-relaxed text-[#8B735B]">
-                    點擊 <span className="text-[#5D4037] font-black italic">Sync Data</span> 同步至雲端，確保成員可見。
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <span className="text-[#D35400] font-black text-[10px] mt-0.5">04</span>
-                  <p className="text-[10px] leading-relaxed text-[#8B735B]">
-                    切換 <span className="font-bold text-[#5D4037]">團隊統整</span> 即可即時查看每週開團概況。
+                    點擊 <span className="text-[#5D4037] font-black italic">Sync Data</span> 同步至雲端。
                   </p>
                 </div>
               </div>
@@ -184,7 +174,6 @@ function App() {
                 <input type="text" placeholder="顯示名稱 / ID" value={roleInfo.displayName} onChange={(e)=>setRoleInfo({...roleInfo, displayName:e.target.value})} className="w-full bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors" />
                 <div className="grid grid-cols-2 gap-2">
                   <input type="number" placeholder="Lv (等級)" value={roleInfo.level} onChange={(e)=>setRoleInfo({...roleInfo, level:e.target.value})} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors" />
-                  {/* 修改點：增加了預設空白選項 */}
                   <select value={roleInfo.job} onChange={(e)=>setRoleInfo({...roleInfo, job:e.target.value})} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-2 py-2 text-xs font-bold outline-none">
                     <option value="" disabled>請選擇職業</option>
                     {JOBS.map(j => <option key={j} value={j}>{j}</option>)}
@@ -211,7 +200,7 @@ function App() {
             </section>
 
             <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
-              <h3 className="text-[10px] font-black text-[#A67C52] mb-3 uppercase tracking-widest flex items-center gap-2"><Clock size={14}/> QUICK ACCESS TIMES</h3>
+              <h3 className="text-[10px] font-black text-[#A67C52] mb-3 uppercase tracking-widest flex items-center gap-2"><Clock size={14}/> QUICK ACCESS</h3>
               <div className="flex flex-wrap gap-1 mb-3">
                 {DEFAULT_TIMES.map(t => (
                   <button key={t} onClick={()=>{ if(!activeTimes.includes(t)) setActiveTimes([...activeTimes, t].sort()) }} className="px-1.5 py-1 bg-[#F5EFE6] text-[#A67C52] rounded-md text-[9px] font-bold hover:bg-[#D35400] hover:text-white active:scale-95 transition-all">+{t}</button>
@@ -224,7 +213,7 @@ function App() {
               <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[#F5EFE6]">
                 {activeTimes.map(t => (
                   <div key={t} className="bg-[#FDFBF7] px-2 py-1 rounded-md text-[9px] font-black text-[#D35400] border border-[#EADBC8] flex items-center gap-1 group">
-                    {t} <button onClick={()=>setActiveTimes(activeTimes.filter(x=>x!==t))} className="text-[#A67C52] hover:text-red-500 active:scale-90 transition-all"><Trash2 size={10}/></button>
+                    {t} <button onClick={()=>setActiveTimes(activeTimes.filter(x=>x!==t))} className="text-[#A67C52] hover:text-red-500 transition-all"><Trash2 size={10}/></button>
                   </div>
                 ))}
               </div>
@@ -274,7 +263,6 @@ function App() {
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 <span className="text-[#A67C52]">{p.job}</span>
-                                {p.bosses?.map(b => <span key={b} className="bg-[#F5EFE6] px-1 rounded-[2px] scale-90 origin-left text-[7px]">#{b}</span>)}
                               </div>
                             </div>
                           ))}
@@ -299,23 +287,19 @@ function App() {
                 const members = allData.filter(p => p.slots?.includes(slot.sid));
                 if (members.length === 0) return null;
                 return (
-                  <div key={slot.sid} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-[24px] p-4 shadow-sm hover:border-[#D35400] transition-colors">
+                  <div key={slot.sid} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-[24px] p-4 shadow-sm">
                     <div className="mb-3">
                       <div className="text-[9px] font-black text-[#A67C52] uppercase">週{slot.day} {slot.date}</div>
                       <div className="text-sm font-black text-[#5D4037]">{slot.time} 突擊小隊</div>
                     </div>
                     <div className="space-y-1.5">
                       {members.map((m, mi) => (
-                        <div key={mi} className="text-[10px] p-2 bg-white rounded-lg border border-[#EADBC8] shadow-sm">
-                          <div className="flex justify-between font-bold text-[#5D4037] mb-1">
-                            <span>{m.user_name} <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span></span>
-                            <span className="text-[#A67C52] font-medium">{m.job}</span>
+                        <div key={mi} className="text-[10px] p-2 bg-white rounded-lg border border-[#EADBC8]">
+                          <div className="flex justify-between font-bold text-[#5D4037]">
+                            <span>{m.user_name}</span>
+                            <span className="text-[#D35400]">Lv.{m.level}</span>
                           </div>
-                          <div className="flex flex-wrap gap-1">
-                            {m.bosses?.map(b => (
-                              <span key={b} className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]">{b}</span>
-                            ))}
-                          </div>
+                          <div className="text-[9px] text-[#A67C52]">{m.job}</div>
                         </div>
                       ))}
                     </div>
@@ -327,8 +311,7 @@ function App() {
         )}
       </main>
 
-      {/* --- 新增：作者資訊 Footer --- */}
-      <footer className="max-w-[1400px] mx-auto mt-12 px-4">
+      <footer className="max-w-[1400px] mx-auto mt-12 px-4 pb-12">
         <div className="bg-white/60 backdrop-blur-md border border-[#EADBC8] rounded-[32px] p-8 text-center shadow-sm">
           <div className="flex flex-col items-center gap-3">
             <div className="bg-[#F5EFE6] p-3 rounded-2xl border border-[#EADBC8]">
@@ -338,37 +321,33 @@ function App() {
               <p className="text-[10px] font-black text-[#A67C52] uppercase tracking-[0.2em] mb-1">Developed By</p>
               <h4 className="text-base font-black text-[#5D4037] mb-2">Vincent</h4>
               <p className="text-[11px] text-[#8B735B] leading-relaxed max-w-[300px] mx-auto">
-                專為 Artale BOSS突襲打造的排班工具，祝各位遠征隊成員打寶順利、楓幣滾滾來！ 🍁
+                專為 Artale BOSS 突擊打造的排班工具，祝各位遠征隊成員打寶順利、楓幣滾滾來！ 🍁
               </p>
             </div>
             
-           {/* Instagram 連結區塊 */}
-<div className="flex gap-4 mt-4">
-  <a 
-  href="https://www.instagram.com/24.vincent" 
-  target="_blank" 
-  rel="noopener noreferrer"
-  className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EADBC8] rounded-2xl text-[#8B735B] hover:text-[#D35400] hover:border-[#D35400] transition-all shadow-sm group"
->
-  {/* 直接繪製圖示，不需要導入任何圖片或庫 */}
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
-  </svg>
-  <span className="text-[11px] font-bold">Follow Me</span>
-</a>
-
-  <span className="text-[9px] font-bold bg-[#8B4513]/5 text-[#8B4513] px-3 py-2 rounded-2xl border border-[#8B4513]/10 flex items-center">
-    v1.0.0 Stable
-  </span>
-</div>
-          
+            <div className="flex gap-4 mt-4">
+              <a 
+                href="https://www.instagram.com/24.vincent" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EADBC8] rounded-2xl text-[#8B735B] hover:text-[#D35400] hover:border-[#D35400] transition-all shadow-sm group"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+                </svg>
+                <span className="text-[11px] font-bold">Follow Me</span>
+              </a>
+              <span className="text-[9px] font-bold bg-[#8B4513]/5 text-[#8B4513] px-3 py-2 rounded-2xl border border-[#8B4513]/10 flex items-center">
+                v1.0.0 Stable
+              </span>
+            </div>
+          </div>
           <div className="mt-8 pt-6 border-t border-[#F5EFE6] text-[9px] font-medium text-[#A67C52]/60">
             &copy; {new Date().getFullYear()} Artale Raid Hub. All rights reserved.
           </div>
         </div>
-    </div>
       </footer>
     </div>
   );
