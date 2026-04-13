@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
-// 刪掉 Instagram，保留其他的
-import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, Check } from 'lucide-react';
+// 修改後應該長這樣（確保括號內沒有 Instagram）
+import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag } from 'lucide-react';
 
 const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
 const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒', '冰雷', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
@@ -350,20 +350,11 @@ function App() {
   rel="noopener noreferrer"
   className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EADBC8] rounded-2xl text-[#8B735B] hover:text-[#D35400] hover:border-[#D35400] transition-all shadow-sm group"
 >
-  {/* 直接使用 SVG，不用匯入 */}
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="16" 
-    height="16" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className="group-hover:scale-110 transition-transform"
-  >
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+  {/* 直接繪製圖示，不需要導入任何圖片或庫 */}
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
   </svg>
   <span className="text-[11px] font-bold">Follow Me</span>
 </a>
