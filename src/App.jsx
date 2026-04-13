@@ -194,16 +194,21 @@ function App() {
             <section className="bg-white p-5 rounded-[24px] border border-[#EADBC8] shadow-sm">
               <h3 className="text-[10px] font-black text-[#A67C52] mb-3 uppercase tracking-widest flex items-center gap-2"><CalIcon size={14}/> SCHEDULE WEEK</h3>
               <div className="flex items-center gap-2">
-                <button onClick={()=>{
-                  setBaseDate(new Date(baseDate.setDate(baseDate.getDate()-7)));
+                <button onClick={() => {
+                  setBaseDate(new Date(baseDate.setDate(baseDate.getDate() - 7)));
                   setSelectedSlots([]);
-                }} className="...">
+                }} className="p-2 hover:bg-[#F5EFE6] rounded-lg transition-colors text-[#A67C52] hover:text-[#D35400]">
                   <ChevronLeft size={18}/>
                 </button>
-                <button onClick={()=>{
-                  setBaseDate(new Date(baseDate.setDate(baseDate.getDate()+7)));
+
+                <div className="flex-1 text-center font-bold text-xs bg-[#FDFBF7] py-1.5 rounded-lg border border-[#EADBC8]">
+                  {weekDateStr}
+                </div>
+
+                <button onClick={() => {
+                  setBaseDate(new Date(baseDate.setDate(baseDate.getDate() + 7)));
                   setSelectedSlots([]);
-                }} className="...">
+                }} className="p-2 hover:bg-[#F5EFE6] rounded-lg transition-colors text-[#A67C52] hover:text-[#D35400]">
                   <ChevronRight size={18}/>
                 </button>
               </div>
@@ -340,17 +345,17 @@ function App() {
               <div className="flex flex-col justify-center">
                <p className="text-[10px] font-black text-[#A67C52] uppercase tracking-[0.2em] mb-1">Developed By</p>
                <h4 className="text-2xl font-black text-[#5D4037] leading-none">Vincent</h4>
+              </div>
             </div>
-          </div>
           
-              <div className="flex-1 text-center md:text-left md:px-10">
-                <h5 className="text-[14px] font-bold text-[#5D4037] mb-1">
-                  專為 Artale BOSS 突擊打造的排班工具
-                </h5>
-               <p className="text-[12px] text-[#8B735B] font-medium">
-                  祝各位遠征隊成員打寶順利、楓幣滾滾來！ 🍁
-                </p>
-              </div> 
+            <div className="flex-1 text-center md:text-left md:px-10">
+              <h5 className="text-[14px] font-bold text-[#5D4037] mb-1">
+                專為 Artale BOSS 突擊打造的排班工具
+              </h5>
+              <p className="text-[12px] text-[#8B735B] font-medium">
+                祝各位遠征隊成員打寶順利、楓幣滾滾來！ 🍁
+              </p>
+            </div> 
             
             <div className="flex items-center gap-4 shrink-0">
               <div className="flex items-center gap-2 px-5 py-2.5 bg-[#5865F2] rounded-2xl text-white shadow-md transition-transform hover:scale-105">
@@ -375,9 +380,9 @@ function App() {
               </div>
             </div>
                
-          <div className="mt-10 pt-6 border-t border-[#F5EFE6] text-[10px] font-medium text-[#A67C52]/50 text-center tracking-widest">
-            &copy; {new Date().getFullYear()} Artale Raid Hub. All rights reserved.
-          </div>
+        <div className="mt-10 pt-6 border-t border-[#F5EFE6] text-[10px] font-medium text-[#A67C52]/50 text-center tracking-widest">
+          &copy; {new Date().getFullYear()} Artale Raid Hub. All rights reserved.
+        </div>
         </div>
       </footer>
     </div>
