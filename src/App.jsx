@@ -18,19 +18,20 @@ function App() {
   
   const getSun = (d) => {
     const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
     const day = date.getDay();
     const diff = date.getDate() - day;
     return new Date(date.setDate(diff));
   }
   const [baseDate, setBaseDate] = useState(getSun(new Date()))
-  const weekDateStr = baseDate.toISOString().split('T')[0];
+  const weekDateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, '0')}-${String(baseDate.getDate()).padStart(2, '0')}`;
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(baseDate);
     d.setDate(baseDate.getDate() + i);
     return {
       dayName: ['日', '一', '二', '三', '四', '五', '六'][i],
-      dateNum: `${d.getMonth() + 1}/${d.getDate()}`,
+      dateNum: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
       isWeekend: i === 0 || i === 6
     };
   });
