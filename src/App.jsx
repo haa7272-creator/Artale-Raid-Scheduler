@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
-import { Instagram,Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, Target, User, Loader2, Instagram } from 'lucide-react'
+// 刪掉 Instagram，保留其他的
+import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, Check } from 'lucide-react';
 
 const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
 const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒', '冰雷', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
@@ -344,14 +345,28 @@ function App() {
            {/* Instagram 連結區塊 */}
 <div className="flex gap-4 mt-4">
   <a 
-    href="https://www.instagram.com/24.vincent" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EADBC8] rounded-2xl text-[#8B735B] hover:text-[#D35400] hover:border-[#D35400] transition-all shadow-sm group"
+  href="https://www.instagram.com/24.vincent" 
+  target="_blank" 
+  rel="noopener noreferrer"
+  className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EADBC8] rounded-2xl text-[#8B735B] hover:text-[#D35400] hover:border-[#D35400] transition-all shadow-sm group"
+>
+  {/* 直接使用 SVG，不用匯入 */}
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="16" 
+    height="16" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className="group-hover:scale-110 transition-transform"
   >
-    <Instagram size={16} className="group-hover:scale-110 transition-transform" />
-    <span className="text-[11px] font-bold">Follow Me</span>
-  </a>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+  </svg>
+  <span className="text-[11px] font-bold">Follow Me</span>
+</a>
 
   <span className="text-[9px] font-bold bg-[#8B4513]/5 text-[#8B4513] px-3 py-2 rounded-2xl border border-[#8B4513]/10 flex items-center">
     v1.0.0 Stable
