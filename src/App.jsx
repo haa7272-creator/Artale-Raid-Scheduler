@@ -294,12 +294,16 @@ function App() {
                     </div>
                     <div className="space-y-1.5">
                       {members.map((m, mi) => (
-                        <div key={mi} className="text-[10px] p-2 bg-white rounded-lg border border-[#EADBC8]">
-                          <div className="flex justify-between font-bold text-[#5D4037]">
-                            <span>{m.user_name}</span>
-                            <span className="text-[#D35400]">Lv.{m.level}</span>
+                        <div key={mi} className="text-[10px] p-2 bg-white rounded-lg border border-[#EADBC8] shadow-sm">
+                          <div className="flex justify-between font-bold text-[#5D4037] mb-1">
+                            <span>{m.user_name} <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span></span>
+                            <span className="text-[#A67C52] font-medium">{m.job}</span>
                           </div>
-                          <div className="text-[9px] text-[#A67C52]">{m.job}</div>
+                          <div className="flex flex-wrap gap-1">
+                            {m.bosses?.map(b => (
+                              <span key={b} className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]">{b}</span>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -313,17 +317,25 @@ function App() {
 
       <footer className="max-w-[1400px] mx-auto mt-12 px-4 pb-12">
         <div className="bg-white/60 backdrop-blur-md border border-[#EADBC8] rounded-[32px] p-8 text-center shadow-sm">
-          <div className="flex flex-col items-center gap-3">
-            <div className="bg-[#F5EFE6] p-3 rounded-2xl border border-[#EADBC8]">
-              <Coffee size={24} className="text-[#8B4513]" />
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 text-center md:text-left">
+            <div className="flex items-center gap-4">
+              <div className="bg-[#F5EFE6] p-3 rounded-2xl border border-[#EADBC8] shrink-0">
+                <Coffee size={24} className="text-[#8B4513]" />
+              </div>
             </div>
             <div>
-              <p className="text-[10px] font-black text-[#A67C52] uppercase tracking-[0.2em] mb-1">Developed By</p>
-              <h4 className="text-base font-black text-[#5D4037] mb-2">Vincent</h4>
-              <p className="text-[11px] text-[#8B735B] leading-relaxed max-w-[300px] mx-auto">
-                專為 Artale BOSS 突擊打造的排班工具，祝各位遠征隊成員打寶順利、楓幣滾滾來！ 🍁
-              </p>
+              <p className="text-[10px] font-black text-[#A67C52] uppercase tracking-[0.2em] mb-0.5">Developed By</p>
+              <h4 className="text-xl font-black text-[#5D4037]">Vincent</h4>
             </div>
+          
+              <div className="flex-1 md:px-12">
+                <p className="text-[12px] font-bold text-[#5D4037] leading-relaxed">
+                  專為 Artale BOSS 突擊打造的排班工具
+                </p>
+                <p className="text-[11px] text-[#8B735B] leading-relaxed">
+                  祝各位遠征隊成員打寶順利、楓幣滾滾來！ 🍁
+                </p>
+              </div> 
             
             <div className="flex gap-4 mt-4">
               <a 
