@@ -263,6 +263,9 @@ function App() {
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 <span className="text-[#A67C52]">{p.job}</span>
+                                {p.bosses?.map(b => (
+                                  <span key={b} className="bg-[#F5EFE6] px-1 rounded-[2px] scale-90 origin-left text-[7px]">#{b}</span>
+                                ))}
                               </div>
                             </div>
                           ))}
