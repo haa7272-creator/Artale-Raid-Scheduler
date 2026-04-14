@@ -74,7 +74,7 @@ function App() {
       targetDate.setHours(0, 0, 0, 0); // 強制重置時間以便精確比對
       
       const now = new Date();
-      const day = today.getDay() || 7; 
+      const day = now.getDay() || 7; 
       const currentMonday = new Date(now);
       currentMonday.setDate(now.getDate() - day + 1); // 找出本週週一
       currentMonday.setHours(0, 0, 0, 0);
