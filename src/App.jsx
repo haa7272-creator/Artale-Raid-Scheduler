@@ -422,7 +422,6 @@ function App() {
                               </svg>
                               </button>
                             )}
-                            <div className="text-[#A67C52] font-medium mb-1">{m.job}</div>
         
                             <div className="flex flex-wrap gap-1 mb-2">
                               {m.bosses?.map(b => (
