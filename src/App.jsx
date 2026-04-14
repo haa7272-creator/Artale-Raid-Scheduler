@@ -185,7 +185,7 @@ function App() {
 
                 <input
                   type="text"
-                  placeholder="Discord 帳號 (例如: vincent#1234)"
+                  placeholder="Discord ID"
                   value={roleInfo.contactInfo}
                   onChange={(e)=>setRoleInfo({...roleInfo, contactInfo:e.target.value})}
                   className="w-full bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors"
