@@ -90,7 +90,6 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(content),
-        mode: 'no-cors'
       });
       console.log("✅ Discord 發送指令已執行");
     } catch (error) {
