@@ -65,8 +65,8 @@ function App() {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
-    // --- 📝 BOSS 名稱轉換 (如果是 personal 顯示個人班表) ---
-    const bossDisplay = viewMode === 'personal' ? "個人班表" : viewMode;
+    // --- 📝 BOSS 名稱轉換 ---
+    const isPersonal = viewMode === 'personal';
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
@@ -122,7 +122,7 @@ function App() {
         fields: [
           {
             name: "🎯 預定目標 (BOSS)",
-            value: `**${bossDisplay || "未指定 BOSS"}**`, // 顯示 BOSS
+            value: `**${viewMode}**`, // 直接顯示 viewMode 的中文名稱
             inline: true
           },
           {
