@@ -2,64 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, User, Loader2 } from 'lucide-react';
 
-const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
-const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒大魔導', '冰雷大魔導', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
-const DEFAULT_TIMES = ['09:30', '10:00', '10:30', '19:00', '19:30', '21:00', '22:00', '22:30', '23:00'];
-
-function App() {
-  const [session, setSession] = useState(null)
-  const [viewMode, setViewMode] = useState('personal')
-  const currentBoss = viewMode === 'personal' ? '' : viewMode;
-  const [selectedSlots, setSelectedSlots] = useState([])
-  const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
-  const [customTime, setCustomTime] = useState('')
-  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '', bosses: [],contactInfo: ''})
-  const [allData, setAllData] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [toast, setToast] = useState({ show: false, message: '' });
-  const [leaderSlots, setLeaderSlots] = useState([]);
-  
-
-
-  const showToast = (msg) => {
-    setToast({ show: true, message: msg });
-    setTimeout(() => setToast({ show: false, message: '' }), 2500); // 2.5秒後自動消失
-  };
-  
-  const getMon = (d) => {
-    const date = new Date(d);
-    date.setHours(0, 0, 0, 0);
-    const day = date.getDay();
-    const diff = date.getDate() - (day === 0 ? 6 : day - 1);
-    return new Date(date.setDate(diff));
-  }
-  const [baseDate, setBaseDate] = useState(getMon(new Date()))
-  const weekDateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, '0')}-${String(baseDate.getDate()).padStart(2, '0')}`;
-
-  const weekDates = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(baseDate);
-    d.setDate(baseDate.getDate() + i);
-    return {
-      dayName: ['一', '二', '三', '四', '五', '六', '日'][i],
-      dateNum: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
-      isWeekend: i === 5 || i === 6
-    };
-  });
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      loadData(session?.user?.id, weekDateStr);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (_event === 'SIGNED_IN') {
-        showToast("⚔️ 歡迎回來，冒險者！");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [weekDateStr]);
-
   // ---------------------------------------------------------
   // 🚀 新增：Discord 戰報發送功能
   // ---------------------------------------------------------
@@ -68,7 +10,7 @@ function App() {
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
     // ✅ 判斷是否有 BOSS 要顯示
-    const hasBoss = bossName && bossName !== '';
+    const hasBoss = bossName && bossName !== 'personal' && bossName !== '';
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
@@ -155,6 +97,65 @@ function App() {
       console.error('❌ Discord 發送失敗:', error);
     }
   };
+
+const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
+const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒大魔導', '冰雷大魔導', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
+const DEFAULT_TIMES = ['09:30', '10:00', '10:30', '19:00', '19:30', '21:00', '22:00', '22:30', '23:00'];
+
+function App() {
+  const [session, setSession] = useState(null)
+  const [viewMode, setViewMode] = useState('personal')
+  const currentBoss = viewMode === 'personal' ? '' : viewMode;
+  const [selectedSlots, setSelectedSlots] = useState([])
+  const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
+  const [customTime, setCustomTime] = useState('')
+  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '', bosses: [],contactInfo: ''})
+  const [allData, setAllData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const [leaderSlots, setLeaderSlots] = useState([]);
+  
+
+
+  const showToast = (msg) => {
+    setToast({ show: true, message: msg });
+    setTimeout(() => setToast({ show: false, message: '' }), 2500); // 2.5秒後自動消失
+  };
+  
+  const getMon = (d) => {
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay();
+    const diff = date.getDate() - (day === 0 ? 6 : day - 1);
+    return new Date(date.setDate(diff));
+  }
+  const [baseDate, setBaseDate] = useState(getMon(new Date()))
+  const weekDateStr = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, '0')}-${String(baseDate.getDate()).padStart(2, '0')}`;
+
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(baseDate);
+    d.setDate(baseDate.getDate() + i);
+    return {
+      dayName: ['一', '二', '三', '四', '五', '六', '日'][i],
+      dateNum: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
+      isWeekend: i === 5 || i === 6
+    };
+  });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      loadData(session?.user?.id, weekDateStr);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (_event === 'SIGNED_IN') {
+        showToast("⚔️ 歡迎回來，冒險者！");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [weekDateStr]);
+
 
   const loadData = async (uid, date) => {
     const { data: team } = await supabase.from('schedules').select('*').eq('week_date', date);
