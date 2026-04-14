@@ -61,20 +61,20 @@ function App() {
   // ---------------------------------------------------------
   // 🚀 新增：Discord 戰報發送功能
   // ---------------------------------------------------------
-  const sendToDiscord = async (userName, selectedSlots) => {
+  const sendToDiscord = async (userName, selectedSlots, weekDateStr) => {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
       const targetDate = new Date(dateStr);
+      targetDate.setHours(0, 0, 0, 0); // 強制重置時間以便精確比對
+      
       const now = new Date();
-
-      // 找出本週週一的日期 (簡單判斷法)
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const day = today.getDay() || 7; 
-      const currentMonday = new Date(today);
-      currentMonday.setDate(today.getDate() - day + 1);
+      const currentMonday = new Date(now);
+      currentMonday.setDate(now.getDate() - day + 1); // 找出本週週一
+      currentMonday.setHours(0, 0, 0, 0);
 
       const diffTime = targetDate.getTime() - currentMonday.getTime();
       const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
@@ -86,23 +86,42 @@ function App() {
 
     const weekLabel = getWeekLabel(weekDateStr);
 
+    // --- 📝 2. 排版邏輯優化：增加分隔線與分組 ---
+    let slotDisplay = "尚未選擇時段";
+    if (selectedSlots.length > 0) {
+      // 依日期排序
+      const sortedSlots = [...selectedSlots].sort();
+
+      let lastDate = "";
+      const formattedList = sortedSlots.map(slot => {
+        const [dayName, time] = slot.split('-');
+        const daysMap = { '一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6 };
+        const baseDate = new Date(weekDateStr);
+        baseDate.setDate(baseDate.getDate() + daysMap[dayName]);
+        const dateDisplay = `${baseDate.getMonth() + 1}/${baseDate.getDate()}`;
+
+        let prefix = "";
+        // 如果日期改變了，前面加一條分隔虛線
+        if (lastDate !== "" && lastDate !== dateDisplay) {
+          prefix = "---\n";
+        }
+        lastDate = dateDisplay;
+
+        return `${prefix}● **${dateDisplay} (${dayName})** 🕙 ${time}`;
+      });
+      slotDisplay = formattedList.join('\n');
+    }
+
+
     const content = {
       embeds: [{
-        title: "⚔️ Artale Raid Hub | 報名資訊更新",
+        title: `⚔️ Artale Raid Hub | ${weekLabel}`,
         description: `成員 **${userName}** 剛剛更新了可參加時段！`,
         color: 0xD35400, 
         fields: [
           {
             name: "📅 已選擇時段",
-            // 💡 加上 .map 處理，把「一-10:00」變成「週一 10:00」
-            value: selectedSlots.length > 0 ? selectedSlots.map(slot => {
-              const [dayName, time] = slot.split('-'); 
-              const daysMap = { '一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6 };
-              const baseDate = new Date(weekDateStr);
-              baseDate.setDate(baseDate.getDate() + daysMap[dayName]);
-              const dateDisplay = `${baseDate.getMonth() + 1}/${baseDate.getDate()}`;
-              return `● **${dateDisplay} (${dayName})** ${time}`;
-            }).join('\n') : "尚未選擇時段",
+            value: slotDisplay,
             inline: false
           }
         ],
