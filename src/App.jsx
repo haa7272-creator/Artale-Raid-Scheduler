@@ -9,6 +9,7 @@ const DEFAULT_TIMES = ['09:30', '10:00', '10:30', '19:00', '19:30', '21:00', '22
 function App() {
   const [session, setSession] = useState(null)
   const [viewMode, setViewMode] = useState('personal')
+  const currentBoss = viewMode === 'personal' ? '' : viewMode;
   const [selectedSlots, setSelectedSlots] = useState([])
   const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
   const [customTime, setCustomTime] = useState('')
@@ -17,7 +18,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '' });
   const [leaderSlots, setLeaderSlots] = useState([]);
-  const currentBoss = (viewMode && viewMode !== 'personal') ? viewMode : '';
+  
 
 
   const showToast = (msg) => {
@@ -62,12 +63,12 @@ function App() {
   // ---------------------------------------------------------
   // 🚀 新增：Discord 戰報發送功能
   // ---------------------------------------------------------
-  const sendToDiscord = async (userName, selectedSlots, weekDateStr, activeBossName) => {
+  const sendToDiscord = async (userName, selectedSlots, weekDateStr, bossName) => {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
-    // ✅ 判斷有沒有 BOSS 要顯示 (排除掉 null 或空字串)
-    const hasBoss = bossName && bossName.trim() !== "";
+    // ✅ 判斷是否有 BOSS 要顯示
+    const hasBoss = bossName && bossName !== '';
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
@@ -126,10 +127,10 @@ function App() {
         description: `成員 **${userName}** 剛剛更新了可參加時段！`,
         color: 0xD35400, 
         fields: [
-          // ✅ 只有在選了 BOSS 時才顯示這個欄位
-          ...(isBoss ? [{
+          // ✅ 只有當 hasBoss 為真（即不是個人班表）時，才顯示 BOSS 欄位
+          ...(hasBoss ? [{
             name: "🎯 預定目標 (BOSS)",
-            value: `**${activeBossName}**`,
+            value: `**${bossName}**`,
             inline: true
           }] : []),
           {
@@ -212,7 +213,7 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        // ✅ 直接傳送我們剛才定義好的 currentBoss
+        // ✅ 傳入 currentBoss 作為第四個參數
         sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, currentBoss);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
