@@ -61,7 +61,7 @@ function App() {
   // ---------------------------------------------------------
   // 🚀 新增：Discord 戰報發送功能
   // ---------------------------------------------------------
-  const sendToDiscord = async (userName, selectedSlots, weekDateStr) => {
+  const sendToDiscord = async (userName, selectedSlots, weekDateStr, bossName) => {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
@@ -76,8 +76,7 @@ function App() {
       currentMonday.setDate(now.getDate() - day + 1); // 找出本週週一
       currentMonday.setHours(0, 0, 0, 0);
 
-      const diffTime = targetDate.getTime() - currentMonday.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round((targetDate.getTime() - currentMonday.getTime()) / (1000 * 60 * 60 * 24));
 
       if (diffDays === 0) return "【本週戰報】";
       if (diffDays === 7) return "【下週戰報】";
@@ -100,14 +99,13 @@ function App() {
         baseDate.setDate(baseDate.getDate() + daysMap[dayName]);
         const dateDisplay = `${baseDate.getMonth() + 1}/${baseDate.getDate()}`;
 
-        let prefix = "";
-        // 如果日期改變了，前面加一條分隔虛線
+        let separator = "";
         if (lastDate !== "" && lastDate !== dateDisplay) {
-          prefix = "---\n";
+          separator = "━━━━━━━━━━━━━━\n"; // 橫跨手機版面的長線
         }
         lastDate = dateDisplay;
 
-        return `${prefix}● **${dateDisplay} (${dayName})** 🕙 ${time}`;
+        return `${separator}● **${dateDisplay} (${dayName})** 🕙 ${time}`;
       });
       slotDisplay = formattedList.join('\n');
     }
@@ -204,7 +202,7 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, activeTab);
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, viewMode);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
