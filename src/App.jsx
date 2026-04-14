@@ -65,6 +65,27 @@ function App() {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
+    // --- 📝 計算「本週」或「下週」標籤 ---
+    const getWeekLabel = (dateStr) => {
+      const targetDate = new Date(dateStr);
+      const now = new Date();
+
+      // 找出本週週一的日期 (簡單判斷法)
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const day = today.getDay() || 7; 
+      const currentMonday = new Date(today);
+      currentMonday.setDate(today.getDate() - day + 1);
+
+      const diffTime = targetDate.getTime() - currentMonday.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return "【本週戰報】";
+      if (diffDays === 7) return "【下週戰報】";
+      return `【${dateStr} 戰報】`;
+    };
+
+    const weekLabel = getWeekLabel(weekDateStr);
+
     const content = {
       embeds: [{
         title: "⚔️ Artale Raid Hub | 報名資訊更新",
@@ -74,9 +95,14 @@ function App() {
           {
             name: "📅 已選擇時段",
             // 💡 加上 .map 處理，把「一-10:00」變成「週一 10:00」
-            value: selectedSlots.length > 0 
-            ? selectedSlots.map(s => s.replace('-', ' ')).join('\n') 
-            : "尚未選擇時段",
+            value: selectedSlots.length > 0 ? selectedSlots.map(slot => {
+              const [dayName, time] = slot.split('-'); 
+              const daysMap = { '一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6 };
+              const baseDate = new Date(weekDateStr);
+              baseDate.setDate(baseDate.getDate() + daysMap[dayName]);
+              const dateDisplay = `${baseDate.getMonth() + 1}/${baseDate.getDate()}`;
+              return `● **${dateDisplay} (${dayName})** ${time}`;
+            }).join('\n') : "尚未選擇時段",
             inline: false
           }
         ],
@@ -154,7 +180,7 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots);
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
