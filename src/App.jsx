@@ -137,13 +137,32 @@ function App() {
               <>
                 <div className="flex items-center gap-3 bg-[#F5EFE6] pl-3 pr-1 py-1 rounded-full border border-[#EADBC8]">
                   <span className="text-[11px] font-black text-[#5D4037]">{roleInfo.displayName || '載入中...'}</span>
+                {session?.user?.user_metadata?.avatar_url ? (
                   <img 
                   src={session?.user?.user_metadata?.avatar_url} 
                   className="w-7 h-7 rounded-full border-2 border-white shadow-sm" 
                   alt="avatar"
                   referrerPolicy="no-referrer" 
+                  // 👇 💡 新增onError 診斷邏輯
+                  onError={(e) => {
+                    // 1. 在 Console 印出錯誤的圖片網址供檢查
+                    console.error("⛔ Discord 頭像載入失敗，圖片網址為：", e.target.src);
+      
+                    // 2. 將 onError 設為 null 防止無限迴圈
+                    e.target.onerror = null; 
+      
+                    // 3. 💡 強制顯示一個「預設的 User Icon」作為替代
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(roleInfo.displayName || 'User')}&background=D35400&color=fff&rounded=true`;
+      
+                    // 4. 通知使用者頭像載入有問題（可選）
+                    showToast("⚠ 頭像載入失敗，已顯示預設圖示");
+                  }}
                   />
-
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-[#EADBC8] flex items-center justify-center">
+                    <User size={20} className="text-[#5D4037]" />
+                  </div>
+                )}
                 </div>
                 <button onClick={handleLogout} className="p-2 text-[#A67C52] hover:text-[#D35400] transition-colors" title="登出">
                   <LogOut size={18}/>
