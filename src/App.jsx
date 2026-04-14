@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient'
 import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, User, Loader2 } from 'lucide-react';
 
 const BOSS_LIST = ['普通拉圖斯', '困難拉圖斯', '殘暴炎魔', '暗黑龍王'];
-const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒', '冰雷', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
+const JOBS = ['英雄', '黑騎士', '聖騎士', '主教', '火毒大魔導', '冰雷大魔導', '箭神', '神射手', '夜使者', '暗影神偷', '拳霸', '槍神'];
 const DEFAULT_TIMES = ['09:30', '10:00', '10:30', '19:00', '19:30', '21:00', '22:00', '22:30', '23:00'];
 
 function App() {
