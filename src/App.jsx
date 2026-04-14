@@ -16,6 +16,7 @@ function App() {
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '' });
+  const [leaderSlots, setLeaderSlots] = useState([]);
 
   const showToast = (msg) => {
     setToast({ show: true, message: msg });
@@ -64,6 +65,7 @@ function App() {
       if (me) {
         setSelectedSlots(me.slots || []);
         if (me.active_times) setActiveTimes(me.active_times);
+        setLeaderSlots(me.is_leader_slots || []);
         setRoleInfo({ 
           displayName: me.user_name || '',
           level: me.level || '', 
@@ -96,6 +98,7 @@ function App() {
       job: roleInfo.job,
       bosses: roleInfo.bosses,
       contact_info: roleInfo.contactInfo,
+      is_leader_slots: leaderSlots,
       updated_at: new Date().toISOString()
     }, { onConflict: ['user_id', 'week_date'] });
     
