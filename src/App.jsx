@@ -120,6 +120,11 @@ function App() {
         color: 0xD35400, 
         fields: [
           {
+            name: "🎯 預定目標 (BOSS)",
+            value: `**${bossName || "未指定 BOSS"}**`, // 顯示 BOSS
+            inline: true
+          },
+          {
             name: "📅 已選擇時段",
             value: slotDisplay,
             inline: false
@@ -199,7 +204,7 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr);
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, activeTab);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
