@@ -326,35 +326,23 @@ function App() {
                       const isSelected = selectedSlots.includes(sid);
                       return (
                         <div key={sid} onClick={() => toggleSlot(sid)} className={`min-h-[110px] p-2 rounded-[20px] border-2 transition-all active:scale-[0.98] ${viewMode === 'personal' ? (isSelected ? "bg-[#D35400] border-[#A04000] shadow-inner" : "bg-[#FDFBF7] border-[#EADBC8]/40 cursor-pointer") : (players.length > 0 ? "bg-white border-[#EADBC8]" : "bg-transparent border-dashed border-[#EADBC8]/20")}`}>
-                          {viewMode === 'team' && players.map((p, i) => (
+                          {viewMode === 'team' && players.map((p, i) => {
+                              const isLeader = getLeader(players, sid)?.user_id === p.user_id;
+  
+                              return (
                             <div 
                               key={i} 
-                              className="mb-1 p-1.5 rounded-lg text-[8px] font-bold border-l-2 bg-[#FDFBF7] border-[#D35400] shadow-sm relative group" // 💡 新增 relative 和 group，方便 Icon 定位
-                            >
-                              {/* 👇 新增 Discord Icon 按鈕，放在角落 */}
-                              {p.contact_info && (
-                                <button
-                                  type="button" // 防止表單觸發
-                                  title={`點擊複製 Discord ID: ${p.contact_info}`} // 滑鼠移上去顯示功能提示
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // 避免點擊成員時，觸發背後格子的選取功能
-                                    if(p.contact_info) {
-                                      navigator.clipboard.writeText(p.contact_info);
-                                      showToast(`已複製 ${p.user_name} 的 Discord ID！\n${p.contact_info}`);
-                                    }
-                                  }}
-                                  // 💡 調整樣式：低飽和度棕色，Hover 後變橘色
-                                  className="absolute bottom-1 right-1 text-[#5D4037] opacity-30 hover:opacity-100 hover:text-[#D35400] transition-all cursor-copy p-1 z-10"
-                                >
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.048-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                                  </svg>
-                                </button>
-                              )}
-                                
+                              className={`mb-1 p-1.5 rounded-lg text-[8px] font-bold border-l-2 shadow-sm relative transition-all ${
+                                isLeader
+                                  ? 'bg-[#FFF5F0] border-[#D35400]' // 隊長：淡橘底、橘邊
+                                  : 'bg-[#FDFBF7] border-[#EADBC8]'  // 成員：米白底、淺棕邊
+                              }`}
+                            >  
                               {/* 保留原本的名字與等級顯示 */}
                               <div className="flex justify-between items-center mb-0.5">
-                                <span className="truncate pr-4">{p.user_name}</span> {/* 💡 新增 pr-4 防止名字過長與 Icon 重疊 */}
+                                <span className="truncate flex items-center gap-1 text-[#5D4037]">
+                                  {isLeader && '👑'} {p.user_name}
+                                </span>
                                 <span className="text-[#D35400] shrink-0">Lv.{p.level}</span>
                               </div>
 
@@ -368,9 +356,10 @@ function App() {
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          );
+                          })}
                         </div>
-                      )
+                      );
                     })}
                   </React.Fragment>
                 ))}
@@ -395,77 +384,70 @@ function App() {
                       <div className="text-[9px] font-black text-[#A67C52] uppercase">週{slot.day} {slot.date}</div>
                       <div className="text-sm font-black text-[#5D4037]">{slot.time} 突擊小隊</div>
                     </div>
-                 {/* --- 找到這一段並替換 --- */}
-                  <div className="space-y-1.5">
-                    {members.map((m, mi) => {
-                    // 1. 判定當前這格成員是否為隊長
-                    const isLeader = getLeader(members, slot.sid)?.user_id === m.user_id;
-                    // 2. 判定當前成員是不是登入者本人
-                    const isMe = session?.user?.id === m.user_id;
+                    <div className="space-y-1.5">
+                      {members.map((m, mi) => {
+                        const isLeader = getLeader(members, slot.sid)?.user_id === m.user_id;
+                        const isMe = session?.user?.id === m.user_id;
 
-                    return (
-                     <div 
-                       key={mi} 
-                       className={`text-[10px] p-2 rounded-lg border shadow-sm transition-all ${
-                          isLeader 
-                           ? 'bg-[#FFF5F0] border-[#D35400] ring-1 ring-[#D35400]/20' 
-                           : 'bg-white border-[#EADBC8]'
-                        }`}
-                      >
-                        <div className="flex justify-between font-bold text-[#5D4037] mb-1">
-                          <span className="flex items-center gap-1">
-                           {isLeader && <span title="隊長">👑</span>}
-                           {m.user_name} 
-                            <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span>
-                           </span>
-                           <span className="text-[#A67C52] font-medium">{m.job}</span>
-                        </div>
-        
-                        {/* Discord ID 顯示 */}
-                        {m.contact_info && (
-                          <div className="text-[7px] text-blue-500 mb-1 font-bold">
-                            Discord: {m.contact_info}
-                          </div>
-                       )}
-        
-                        {/* Boss 標籤 */}
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {m.bosses?.map(b => (
-                            <span 
-                              key={b} 
-                              className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]"
-                           >
-                              {b}
-                            </span>
-                         ))}
-                        </div>
-
-                        {/* 👇 我來帶隊按鈕：只有本人會看到此按鈕 */}
-                        {isMe && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const isLeading = leaderSlots.includes(slot.sid);
-                              // 切換選取狀態
-                              setLeaderSlots(isLeading 
-                                ? leaderSlots.filter(s => s !== slot.sid) 
-                                : [...leaderSlots, slot.sid]
-                             );
-                             showToast(isLeading ? "已卸下隊長職責" : "⚔️ 你已接手此團隊長！");
-                           }}
-                           className={`w-full py-1 rounded-md text-[8px] font-black transition-all border ${
-                             leaderSlots.includes(slot.sid) 
-                               ? 'bg-[#D35400] text-white border-[#D35400]' 
-                               : 'bg-white text-[#A67C52] border-[#EADBC8] hover:border-[#D35400] hover:text-[#D35400]'
-                           }`}
+                        return (
+                          <div 
+                            key={mi} 
+                            className={`text-[10px] p-2 rounded-lg border shadow-sm transition-all ${
+                              isLeader 
+                                ? 'bg-[#FFF5F0] border-[#D35400] ring-1 ring-[#D35400]/20' 
+                                : 'bg-white border-[#EADBC8]'
+                            }`}
                           >
-                           {leaderSlots.includes(slot.sid) ? '取消帶隊' : '🙋 我來帶隊'}
-                          </button>
-                       )}
-                     </div>
-                    );
-                   })}
-                 </div>
+                            <div className="flex justify-between font-bold text-[#5D4037] mb-1">
+                              <span className="flex items-center gap-1">
+                                {isLeader && <span title="隊長">👑</span>}
+                                {m.user_name} 
+                                <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span>
+                              </span>
+                              <span className="text-[#A67C52] font-medium">{m.job}</span>
+                            </div>
+        
+                            {m.contact_info && (
+                              <div className="text-[7px] text-blue-500 mb-1 font-bold">
+                                Discord: {m.contact_info}
+                              </div>
+                            )}
+        
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {m.bosses?.map(b => (
+                                <span 
+                                  key={b} 
+                                  className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]"
+                                >
+                                  {b}
+                                </span>
+                              ))}
+                            </div>
+
+                            {isMe && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const isLeading = leaderSlots.includes(slot.sid);
+                                  setLeaderSlots(isLeading 
+                                    ? leaderSlots.filter(s => s !== slot.sid) 
+                                    : [...leaderSlots, slot.sid]
+                                  );
+                                  showToast(isLeading ? "已卸下隊長職責" : "⚔️ 你已接手此團隊長！");
+                                }}
+                                className={`w-full py-1 rounded-md text-[8px] font-black transition-all border ${
+                                  leaderSlots.includes(slot.sid) 
+                                    ? 'bg-[#D35400] text-white border-[#D35400]' 
+                                    : 'bg-white text-[#A67C52] border-[#EADBC8] hover:border-[#D35400] hover:text-[#D35400]'
+                                }`}
+                              >
+                                {leaderSlots.includes(slot.sid) ? '取消帶隊' : '🙋 我來帶隊'}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
