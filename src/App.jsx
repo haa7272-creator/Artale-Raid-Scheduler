@@ -80,7 +80,7 @@ function App() {
             inline: false
           }
         ],
-        footer: { text: "版本號：v1.1.1 Stable" },
+        footer: { text: "版本號：v1.2.0 Build 20260415" },
         timestamp: new Date()
       }]
     };
@@ -89,7 +89,7 @@ function App() {
       await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content),
+        body: JSON.stringify(content)
       });
       console.log("✅ Discord 發送指令已執行");
     } catch (error) {
