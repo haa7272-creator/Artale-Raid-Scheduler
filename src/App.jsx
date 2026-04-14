@@ -132,7 +132,12 @@ function App() {
               <>
                 <div className="flex items-center gap-3 bg-[#F5EFE6] pl-3 pr-1 py-1 rounded-full border border-[#EADBC8]">
                   <span className="text-[11px] font-black text-[#5D4037]">{roleInfo.displayName || '載入中...'}</span>
-                  <img src={session.user.user_metadata.avatar_url} className="w-7 h-7 rounded-full border-2 border-white shadow-sm" alt="avatar" />
+                  <img src={session.user.user_metadata.avatar_url} 
+                  className="w-7 h-7 rounded-full border-2 border-white shadow-sm" 
+                  alt="avatar"
+                  referrerPolicy="no-referrer" 
+                  />
+                  
                 </div>
                 <button onClick={handleLogout} className="p-2 text-[#A67C52] hover:text-[#D35400] transition-colors" title="登出">
                   <LogOut size={18}/>
