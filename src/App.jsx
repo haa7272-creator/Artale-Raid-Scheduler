@@ -61,12 +61,12 @@ function App() {
   // ---------------------------------------------------------
   // 🚀 新增：Discord 戰報發送功能
   // ---------------------------------------------------------
-  const sendToDiscord = async (userName, selectedSlots, weekDateStr, viewMode) => {
+  const sendToDiscord = async (userName, selectedSlots, weekDateStr, activeBossName) => {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
-    // --- 📝 BOSS 名稱轉換 ---
-    const isPersonal = viewMode === 'personal';
+    // ✅ 只有當抓到的字不是 '個人班表' 且不是 'personal'，才顯示 BOSS
+    const isBoss = activeBossName && activeBossName !== '個人班表' && activeBossName !== 'personal';
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
@@ -88,11 +88,16 @@ function App() {
 
     const weekLabel = getWeekLabel(weekDateStr);
 
-    // --- 📝 2. 排版邏輯優化：增加分隔線與分組 ---
+    // --- ✅ 修正：時間排序 (由早到晚) ---
     let slotDisplay = "尚未選擇時段";
     if (selectedSlots.length > 0) {
-      // 依日期排序
-      const sortedSlots = [...selectedSlots].sort();
+      const daysOrder = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '日': 7 };
+      const sortedSlots = [...selectedSlots].sort((a, b) => {
+        const [dayA, timeA] = a.split('-');
+        const [dayB, timeB] = b.split('-');
+        if (daysOrder[dayA] !== daysOrder[dayB]) return daysOrder[dayA] - daysOrder[dayB];
+        return timeA.localeCompare(timeB);
+      });
 
       let lastDate = "";
       const formattedList = sortedSlots.map(slot => {
@@ -120,11 +125,12 @@ function App() {
         description: `成員 **${userName}** 剛剛更新了可參加時段！`,
         color: 0xD35400, 
         fields: [
-          {
+          // ✅ 只有在選了 BOSS 時才顯示這個欄位
+          ...(isBoss ? [{
             name: "🎯 預定目標 (BOSS)",
-            value: `**${viewMode}**`, // 直接顯示 viewMode 的中文名稱
+            value: `**${activeBossName}**`,
             inline: true
-          },
+          }] : []),
           {
             name: "📅 已選擇時段",
             value: slotDisplay,
@@ -205,7 +211,11 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, viewMode);
+        // ✅ 1. 先抓取當前畫面上「橘色選中狀態」按鈕的文字
+        const activeBossName = document.querySelector('button.bg-orange-600')?.innerText || viewMode;
+
+        // ✅ 2. 將抓到的 activeBossName 傳給 sendToDiscord
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, activeBossName);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
