@@ -214,8 +214,16 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        // ✅ 傳入 currentBoss 作為第四個參數
-        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, currentBoss);
+        // 1. 找出畫面上所有 BOSS 按鈕中，背景是橘色 (bg-orange-600) 的那一個
+        const allButtons = Array.from(document.querySelectorAll('button'));
+        const activeBossBtn = allButtons.find(btn => btn.classList.contains('bg-orange-600'));
+
+        // 2. 抓取該按鈕的文字（例如 "普通拉圖斯"）
+        // 如果抓不到（代表在個人班表頁面），就給它空字串
+        const finalBossName = activeBossBtn ? activeBossBtn.innerText : '';
+
+        // 3. 直接把這個「眼睛看到的文字」發出去
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, finalBossName);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
