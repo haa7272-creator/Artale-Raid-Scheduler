@@ -140,27 +140,25 @@ function App() {
                 {session?.user?.user_metadata?.avatar_url ? (
                   <img 
                   src={session?.user?.user_metadata?.avatar_url} 
-                  className="w-7 h-7 rounded-full border-2 border-white shadow-sm" 
+                  className="w-7 h-7 rounded-full border-2 border-white shadow-sm object-cover"
                   alt="avatar"
                   referrerPolicy="no-referrer" 
                   // 👇 💡 新增onError 診斷邏輯
                   onError={(e) => {
-                    // 1. 在 Console 印出錯誤的圖片網址供檢查
-                    console.error("⛔ Discord 頭像載入失敗，圖片網址為：", e.target.src);
-      
-                    // 2. 將 onError 設為 null 防止無限迴圈
+                    // 💡 關鍵：先移除 onError 避免無限循環
                     e.target.onerror = null; 
       
-                    // 3. 💡 強制顯示一個「預設的 User Icon」作為替代
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(roleInfo.displayName || 'User')}&background=D35400&color=fff&rounded=true`;
+                    // 💡 靜默替換為預設圖示，不再呼叫 showToast
+                    const fallbackName = encodeURIComponent(roleInfo.displayName || 'User');
+                    e.target.src = `https://ui-avatars.com/api/?name=${fallbackName}&background=D35400&color=fff&rounded=true`;
       
-                    // 4. 通知使用者頭像載入有問題（可選）
-                    showToast("⚠ 頭像載入失敗，已顯示預設圖示");
+                    // 在後台印出診斷訊息就好，不要吵使用者
+                    console.warn("Avatar load failed, switched to fallback.");
                   }}
                   />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-[#EADBC8] flex items-center justify-center">
-                    <User size={20} className="text-[#5D4037]" />
+                    <User size={16} className="text-[#5D4037]" />
                   </div>
                 )}
                 </div>
