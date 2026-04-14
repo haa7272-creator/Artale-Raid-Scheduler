@@ -508,7 +508,7 @@ function App() {
                </a>
             
                <span className="text-[10px] font-bold bg-[#8B4513]/10 text-[#8B4513] px-4 py-2.5 rounded-2xl border border-[#8B4513]/10">
-                 v1.0.0 Stable
+                 v1.1.0 
                </span>
               </div>
             </div>
