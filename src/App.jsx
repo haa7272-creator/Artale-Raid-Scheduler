@@ -17,6 +17,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '' });
   const [leaderSlots, setLeaderSlots] = useState([]);
+  const currentBoss = (viewMode && viewMode !== 'personal') ? viewMode : '';
 
 
   const showToast = (msg) => {
@@ -65,8 +66,8 @@ function App() {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
 
-    // ✅ 只有當抓到的字不是 '個人班表' 且不是 'personal'，才顯示 BOSS
-    const isBoss = activeBossName && activeBossName !== '個人班表' && activeBossName !== 'personal';
+    // ✅ 判斷有沒有 BOSS 要顯示 (排除掉 null 或空字串)
+    const hasBoss = bossName && bossName.trim() !== "";
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
@@ -211,11 +212,8 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        // ✅ 1. 先抓取當前畫面上「橘色選中狀態」按鈕的文字
-        const activeBossName = document.querySelector('button.bg-orange-600')?.innerText || viewMode;
-
-        // ✅ 2. 將抓到的 activeBossName 傳給 sendToDiscord
-        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, activeBossName);
+        // ✅ 直接傳送我們剛才定義好的 currentBoss
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, currentBoss);
 
         showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
