@@ -18,6 +18,7 @@ function App() {
   const [toast, setToast] = useState({ show: false, message: '' });
   const [leaderSlots, setLeaderSlots] = useState([]);
 
+
   const showToast = (msg) => {
     setToast({ show: true, message: msg });
     setTimeout(() => setToast({ show: false, message: '' }), 2500); // 2.5秒後自動消失
@@ -56,6 +57,44 @@ function App() {
     });
     return () => subscription.unsubscribe();
   }, [weekDateStr]);
+
+  // ---------------------------------------------------------
+  // 🚀 新增：Discord 戰報發送功能
+  // ---------------------------------------------------------
+  const sendToDiscord = async (userName, selectedSlots) => {
+    // ⚠️ 請填入你的 Webhook URL
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
+
+    const content = {
+      embeds: [{
+        title: "⚔️ Artale Raid Hub | 報名資訊更新",
+        description: `成員 **${userName}** 剛剛更新了可參加時段！`,
+        color: 0xD35400, 
+        fields: [
+          {
+            name: "📅 已選擇時段",
+            // 💡 加上 .map 處理，把「一-10:00」變成「週一 10:00」
+            value: selectedSlots.length > 0 
+            ? selectedSlots.map(s => s.replace('-', ' ')).join('\n') 
+            : "尚未選擇時段",
+            inline: false
+          }
+        ],
+        footer: { text: "版本號：v1.1.1 Stable" },
+        timestamp: new Date()
+      }]
+    };
+
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      });
+    } catch (error) {
+      console.error('❌ Discord 發送失敗:', error);
+    }
+  };
 
   const loadData = async (uid, date) => {
     const { data: team } = await supabase.from('schedules').select('*').eq('week_date', date);
@@ -114,7 +153,9 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        showToast('🍁 數據同步成功！');
+        sendToDiscord(roleInfo.displayName || "未知成員", selectedSlots);
+
+        showToast('🔥 數據同步成功！已推送到 Discord');
         loadData(session.user.id, weekDateStr);
       } else {
         showToast('儲存失敗：' + error.message);
