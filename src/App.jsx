@@ -49,6 +49,9 @@ function App() {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (_event === 'SIGNED_IN') {
+        showToast("⚔️ 歡迎回來，冒險者！");
+      }
     });
     return () => subscription.unsubscribe();
   }, [weekDateStr]);
@@ -99,10 +102,10 @@ function App() {
     setTimeout(() => {
       setLoading(false);
       if (!error) {
-        alert('🍁 數據同步成功！');
+        showToast('🍁 數據同步成功！');
         loadData(session.user.id, weekDateStr);
       } else {
-        alert('儲存失敗：' + error.message);
+        showToast('儲存失敗：' + error.message);
       }
     }, 400);
   }
@@ -113,6 +116,8 @@ function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    // 👇 新增：登出成功提示
+    showToast("☕ 辛苦了！期待下次見面");
   }
 
   return (
