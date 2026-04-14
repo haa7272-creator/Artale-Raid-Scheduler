@@ -81,6 +81,15 @@ function App() {
     if (viewMode !== 'personal') return;
     setSelectedSlots(prev => prev.includes(sid) ? prev.filter(s => s !== sid) : [...prev, sid]);
   }
+  const getLeader = (members, slotId) => {
+   if (!members || members.length === 0) return null;
+   // 1. 優先找手動認領帶隊的人
+   const manualLeader = members.find(m => m.is_leader_slots?.includes(slotId));
+   if (manualLeader) return manualLeader;
+   // 2. 自動推舉等級最高者
+   return [...members].sort((a, b) => (parseInt(b.level) || 0) - (parseInt(a.level) || 0))[0];
+  };
+
 
   const handleSave = async () => {
     if (!session) return alert("請先登入 Discord 帳號！");
@@ -386,24 +395,79 @@ function App() {
                       <div className="text-[9px] font-black text-[#A67C52] uppercase">週{slot.day} {slot.date}</div>
                       <div className="text-sm font-black text-[#5D4037]">{slot.time} 突擊小隊</div>
                     </div>
-                    <div className="space-y-1.5">
-                      {members.map((m, mi) => (
-                        <div key={mi} className="text-[10px] p-2 bg-white rounded-lg border border-[#EADBC8] shadow-sm">
-                          <div className="flex justify-between font-bold text-[#5D4037] mb-1">
-                            <span>{m.user_name} <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span></span>
-                            <span className="text-[#A67C52] font-medium">{m.job}</span>
-                          </div>
-                          {m.contact_info && <div className="text-[7px] text-blue-500 mb-1 font-bold">Discord: {m.contact_info}</div>}
-                          <div className="flex flex-wrap gap-1">
-                            {m.bosses?.map(b => (
-                              <span key={b} className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]">{b}</span>
-                            ))}
-                          </div>
+                 {/* --- 找到這一段並替換 --- */}
+                  <div className="space-y-1.5">
+                    {members.map((m, mi) => {
+                    // 1. 判定當前這格成員是否為隊長
+                    const isLeader = getLeader(members, slot.sid)?.user_id === m.user_id;
+                    // 2. 判定當前成員是不是登入者本人
+                    const isMe = session?.user?.id === m.user_id;
+
+                    return (
+                     <div 
+                       key={mi} 
+                       className={`text-[10px] p-2 rounded-lg border shadow-sm transition-all ${
+                          isLeader 
+                           ? 'bg-[#FFF5F0] border-[#D35400] ring-1 ring-[#D35400]/20' 
+                           : 'bg-white border-[#EADBC8]'
+                        }`}
+                      >
+                        <div className="flex justify-between font-bold text-[#5D4037] mb-1">
+                          <span className="flex items-center gap-1">
+                           {isLeader && <span title="隊長">👑</span>}
+                           {m.user_name} 
+                            <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span>
+                           </span>
+                           <span className="text-[#A67C52] font-medium">{m.job}</span>
                         </div>
-                      ))}
-                    </div>
+        
+                        {/* Discord ID 顯示 */}
+                        {m.contact_info && (
+                          <div className="text-[7px] text-blue-500 mb-1 font-bold">
+                            Discord: {m.contact_info}
+                          </div>
+                       )}
+        
+                        {/* Boss 標籤 */}
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {m.bosses?.map(b => (
+                            <span 
+                              key={b} 
+                              className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]"
+                           >
+                              {b}
+                            </span>
+                         ))}
+                        </div>
+
+                        {/* 👇 我來帶隊按鈕：只有本人會看到此按鈕 */}
+                        {isMe && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const isLeading = leaderSlots.includes(slot.sid);
+                              // 切換選取狀態
+                              setLeaderSlots(isLeading 
+                                ? leaderSlots.filter(s => s !== slot.sid) 
+                                : [...leaderSlots, slot.sid]
+                             );
+                             showToast(isLeading ? "已卸下隊長職責" : "⚔️ 你已接手此團隊長！");
+                           }}
+                           className={`w-full py-1 rounded-md text-[8px] font-black transition-all border ${
+                             leaderSlots.includes(slot.sid) 
+                               ? 'bg-[#D35400] text-white border-[#D35400]' 
+                               : 'bg-white text-[#A67C52] border-[#EADBC8] hover:border-[#D35400] hover:text-[#D35400]'
+                           }`}
+                          >
+                           {leaderSlots.includes(slot.sid) ? '取消帶隊' : '🙋 我來帶隊'}
+                          </button>
+                       )}
+                     </div>
+                    );
+                   })}
+                 </div>
                   </div>
-                )
+                );
               })}
             </div>
           </section>
