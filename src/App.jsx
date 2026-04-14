@@ -300,7 +300,7 @@ function App() {
                                     e.stopPropagation(); // 避免點擊成員時，觸發背後格子的選取功能
                                     if(p.contact_info) {
                                       navigator.clipboard.writeText(p.contact_info);
-                                      showToast(`✅ 已複製 ${p.user_name} 的 Discord ID！\n內容：${p.contact_info}`);
+                                      showToast(`已複製 ${p.user_name} 的 Discord ID！\n${p.contact_info}`);
                                     }
                                   }}
                                   // 💡 調整樣式：低飽和度棕色，Hover 後變橘色
