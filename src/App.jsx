@@ -372,95 +372,135 @@ function App() {
           <section className="bg-white p-6 rounded-[32px] border border-[#EADBC8] shadow-sm">
             <div className="flex items-center gap-2.5 mb-6">
               <div className="bg-[#D35400] p-2 rounded-xl text-white shadow-md"><Flag size={18}/></div>
-              <h2 className="text-lg font-black text-[#5D4037] tracking-tight">成團戰報</h2>
+              <h2 className="text-lg font-black text-[#5D4037] tracking-tight">每週成團戰報</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {activeTimes.flatMap(t => weekDates.map(d => ({sid:`${d.dayName}-${t}`, day:d.dayName, date:d.dateNum, time:t}))).map(slot => {
-                const members = allData.filter(p => p.slots?.includes(slot.sid));
-                if (members.length === 0) return null;
+
+            {/* 優化：改用 flex 垂直排列，並按日期分組感 */}
+            <div className="space-y-8">
+              {/* 步驟 1: 處理資料排序 */}
+              {(() => {
+                const sortedSlots = activeTimes
+                 .flatMap(t => weekDates.map(d => ({
+                   sid: `${d.dayName}-${t}`,
+                   day: d.dayName,
+                   date: d.dateNum,
+                   time: t,
+                   // 建立排序權重：日期優先於時間
+                   weight: `${weekDates.findIndex(wd => wd.dayName === d.dayName)}-${t}`
+                 })))
+                 .filter(slot => allData.some(p => p.slots?.includes(slot.sid)))
+                 .sort((a, b) => a.weight.localeCompare(b.weight));
+
+                if (sortedSlots.length === 0) return <p className="text-center text-[#A67C52] py-10 font-bold">目前尚無成團資訊</p>;
+
                 return (
-                  <div key={slot.sid} className="bg-[#FDFBF7] border border-[#EADBC8] rounded-[24px] p-4 shadow-sm">
-                    <div className="mb-3">
-                      <div className="text-[9px] font-black text-[#A67C52] uppercase">週{slot.day} {slot.date}</div>
-                      <div className="text-sm font-black text-[#5D4037]">{slot.time} 突擊小隊</div>
-                    </div>
-                    <div className="space-y-1.5">
-                      {members.map((m, mi) => {
-                        const isLeader = getLeader(members, slot.sid)?.user_id === m.user_id;
-                        const isMe = session?.user?.id === m.user_id;
+                  <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {sortedSlots.map((slot, index) => {
+                      const members = allData.filter(p => p.slots?.includes(slot.sid));
 
-                        return (
-                          <div 
-                            key={mi} 
-                            className={`text-[10px] p-2 rounded-lg border shadow-sm transition-all ${
-                              isLeader 
-                                ? 'bg-[#FFF5F0] border-[#D35400] ring-1 ring-[#D35400]/20' 
-                                : 'bg-white border-[#EADBC8]'
-                            }`}
-                          >
-                            <div className="flex justify-between font-bold text-[#5D4037] mb-1">
-                              <span className="flex items-center gap-1">
-                                {isLeader && <span title="隊長">👑</span>}
-                                {m.user_name} 
-                                <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span>
+                      // 檢查是否為當天的第一個團，用來顯示分組感
+                      const isFirstOfDate = index === 0 || sortedSlots[index - 1].day !== slot.day;
+
+                      return (
+                        <div key={slot.sid} className={`flex flex-col ${isFirstOfDate ? 'md:mt-0' : ''}`}>
+                          {/* 只有當天第一個團顯示大標題，增加呼吸感 */}
+                          {isFirstOfDate && (
+                            <div className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
+                              <span className="bg-[#5D4037] text-white text-[10px] px-2 py-1 rounded-lg font-black">
+                                週{slot.day} {slot.date}
                               </span>
-                              <span className="text-[#A67C52] font-medium">{m.job}</span>
+                              <div className="h-[1px] flex-1 bg-[#EADBC8]"></div>
                             </div>
-        
-                            {m.contact_info && (
-                             <button
-                               onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(m.contact_info);
-                                showToast(`已複製 ${m.user_name} 的 Discord ID！`);
-                              }}
-                              className="text-[#5D4037] opacity-30 hover:opacity-100 hover:text-[#5865F2] transition-all p-0.5"
-                              title={`複製 Discord: ${m.contact_info}`}
-                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.048-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                              </svg>
-                              </button>
-                            )}
-        
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {m.bosses?.map(b => (
-                                <span 
-                                  key={b} 
-                                  className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]"
-                                >
-                                  {b}
-                                </span>
-                              ))}
-                            </div>
+                          )}
 
-                            {isMe && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const isLeading = leaderSlots.includes(slot.sid);
-                                  setLeaderSlots(isLeading 
-                                    ? leaderSlots.filter(s => s !== slot.sid) 
-                                    : [...leaderSlots, slot.sid]
-                                  );
-                                  showToast(isLeading ? "已卸下隊長職責" : "⚔️ 你已接手此團隊長！");
-                                }}
-                                className={`w-full py-1 rounded-md text-[8px] font-black transition-all border ${
-                                  leaderSlots.includes(slot.sid) 
-                                    ? 'bg-[#D35400] text-white border-[#D35400]' 
-                                    : 'bg-white text-[#A67C52] border-[#EADBC8] hover:border-[#D35400] hover:text-[#D35400]'
-                                }`}
-                              >
-                                {leaderSlots.includes(slot.sid) ? '取消帶隊' : '🙋 我來帶隊'}
-                              </button>
-                            )}
+                          {/* 卡片本體 */}
+                          <div className="bg-[#FDFBF7] border border-[#EADBC8] rounded-[24px] p-4 shadow-sm">
+                            <div className="text-[11px] font-black text-[#D35400] mb-3 flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 bg-[#D35400] rounded-full"></span>
+                              {slot.time} 突擊小隊
+                            </div>
+                            {/* 這裡放原本的 members.map 內容 */}
+                            <div className="space-y-1.5">
+                              {members.map((m, mi) => {
+                                const isLeader = getLeader(members, slot.sid)?.user_id === m.user_id;
+                                const isMe = session?.user?.id === m.user_id;
+
+                                return (
+                                  <div 
+                                    key={mi} 
+                                    className={`text-[10px] p-2 rounded-lg border shadow-sm transition-all ${
+                                      isLeader 
+                                        ? 'bg-[#FFF5F0] border-[#D35400] ring-1 ring-[#D35400]/20' 
+                                        : 'bg-white border-[#EADBC8]'
+                                    }`}
+                                  >
+                                    <div className="flex justify-between font-bold text-[#5D4037] mb-1">
+                                      <span className="flex items-center gap-1">
+                                        {isLeader && <span title="隊長">👑</span>}
+                                        {m.user_name} 
+                                        <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span>
+                                      </span>
+                                      <span className="text-[#A67C52] font-medium">{m.job}</span>
+                                    </div>
+            
+                                    {m.contact_info && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigator.clipboard.writeText(m.contact_info);
+                                          showToast(`已複製 ${m.user_name} 的 Discord ID！`);
+                                        }}
+                                        className="text-[#5D4037] opacity-30 hover:opacity-100 hover:text-[#5865F2] transition-all p-0.5"
+                                        title={`複製 Discord: ${m.contact_info}`}
+                                      >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.048-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.196.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                                        </svg>
+                                      </button>
+                                    )}
+            
+                                    <div className="flex flex-wrap gap-1 mb-2">
+                                      {m.bosses?.map(b => (
+                                        <span 
+                                          key={b} 
+                                          className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]"
+                                        >
+                                          {b}
+                                        </span>
+                                      ))}
+                                    </div>
+
+                                    {isMe && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const isLeading = leaderSlots.includes(slot.sid);
+                                          setLeaderSlots(isLeading 
+                                            ? leaderSlots.filter(s => s !== slot.sid) 
+                                            : [...leaderSlots, slot.sid]
+                                          );
+                                          showToast(isLeading ? "已卸下隊長職責" : "⚔️ 你已接手此團隊長！");
+                                        }}
+                                        className={`w-full py-1 rounded-md text-[8px] font-black transition-all border ${
+                                          leaderSlots.includes(slot.sid) 
+                                            ? 'bg-[#D35400] text-white border-[#D35400]' 
+                                            : 'bg-white text-[#A67C52] border-[#EADBC8] hover:border-[#D35400] hover:text-[#D35400]'
+                                        }`}
+                                      >
+                                        {leaderSlots.includes(slot.sid) ? '取消帶隊' : '🙋 我來帶隊'}
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
-              })}
+              })()}
             </div>
           </section>
         )}
@@ -508,7 +548,7 @@ function App() {
                </a>
             
                <span className="text-[10px] font-bold bg-[#8B4513]/10 text-[#8B4513] px-4 py-2.5 rounded-2xl border border-[#8B4513]/10">
-                 v1.1.0 
+                 v1.1.1 
                </span>
               </div>
             </div>
