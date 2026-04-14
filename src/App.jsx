@@ -89,8 +89,10 @@ function App() {
       await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
+        body: JSON.stringify(content),
+        mode: 'no-cors'
       });
+      console.log("✅ Discord 發送指令已執行");
     } catch (error) {
       console.error('❌ Discord 發送失敗:', error);
     }
