@@ -61,9 +61,12 @@ function App() {
   // ---------------------------------------------------------
   // 🚀 新增：Discord 戰報發送功能
   // ---------------------------------------------------------
-  const sendToDiscord = async (userName, selectedSlots, weekDateStr, bossName) => {
+  const sendToDiscord = async (userName, selectedSlots, weekDateStr, viewMode) => {
     // ⚠️ 請填入你的 Webhook URL
     const WEBHOOK_URL = 'https://discord.com/api/webhooks/1493654863312195784/YE09_033lvIkcTVYywv-TukS-Ef1Osd2VD11lIxPgqm3d-2PYzQLyvf4G3rAVCUs2GR0'; 
+
+    // --- 📝 BOSS 名稱轉換 (如果是 personal 顯示個人班表) ---
+    const bossDisplay = viewMode === 'personal' ? "個人班表" : viewMode;
 
     // --- 📝 計算「本週」或「下週」標籤 ---
     const getWeekLabel = (dateStr) => {
@@ -119,7 +122,7 @@ function App() {
         fields: [
           {
             name: "🎯 預定目標 (BOSS)",
-            value: `**${bossName || "未指定 BOSS"}**`, // 顯示 BOSS
+            value: `**${bossDisplay || "未指定 BOSS"}**`, // 顯示 BOSS
             inline: true
           },
           {
