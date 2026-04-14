@@ -12,7 +12,7 @@ function App() {
   const [selectedSlots, setSelectedSlots] = useState([])
   const [activeTimes, setActiveTimes] = useState(['10:30', '20:00', '21:00', '22:00'])
   const [customTime, setCustomTime] = useState('')
-  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '', bosses: [] })
+  const [roleInfo, setRoleInfo] = useState({ displayName: '', level: '', job: '', bosses: [],contactInfo: ''})
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(false)
   
@@ -59,7 +59,8 @@ function App() {
           displayName: me.user_name || '',
           level: me.level || '', 
           job: me.job || '', 
-          bosses: me.bosses || [] 
+          bosses: me.bosses || [],
+          contactInfo: me.contact_info || '' 
         });
       }
     }
@@ -85,6 +86,7 @@ function App() {
       level: roleInfo.level,
       job: roleInfo.job,
       bosses: roleInfo.bosses,
+      contact_info: roleInfo.contactInfo,
       updated_at: new Date().toISOString()
     }, { onConflict: ['user_id', 'week_date'] });
     
@@ -180,6 +182,14 @@ function App() {
                     {JOBS.map(j => <option key={j} value={j}>{j}</option>)}
                   </select>
                 </div>
+
+                <input
+                  type="text"
+                  placeholder="Discord 帳號 (例如: vincent#1234)"
+                  value={roleInfo.contactInfo}
+                  onChange={(e)=>setRoleInfo({...roleInfo, contactInfo:e.target.value})}
+                  className="w-full bg-[#FDFBF7] border border-[#EADBC8] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#D35400] transition-colors"
+                />
               </div>
               <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#F5EFE6]">
                 {BOSS_LIST.map(b => (
@@ -271,16 +281,40 @@ function App() {
                       return (
                         <div key={sid} onClick={() => toggleSlot(sid)} className={`min-h-[110px] p-2 rounded-[20px] border-2 transition-all active:scale-[0.98] ${viewMode === 'personal' ? (isSelected ? "bg-[#D35400] border-[#A04000] shadow-inner" : "bg-[#FDFBF7] border-[#EADBC8]/40 cursor-pointer") : (players.length > 0 ? "bg-white border-[#EADBC8]" : "bg-transparent border-dashed border-[#EADBC8]/20")}`}>
                           {viewMode === 'team' && players.map((p, i) => (
-                            <div key={i} className="mb-1 p-1.5 rounded-lg text-[8px] font-bold border-l-2 bg-[#FDFBF7] border-[#D35400] shadow-sm">
+                            <div 
+                              key={i} 
+                              // 💡 這裡新增了提示文字，滑鼠移上去會顯示
+                              title={p.contact_info ? `點擊複製 Discord ID: ${p.contact_info}` : "此玩家未提供聯繫資訊"}
+                              onClick={(e) => {
+                                e.stopPropagation(); // 防止觸發到格子的切換功能
+                                if(p.contact_info) {
+                                  navigator.clipboard.writeText(p.contact_info);
+                                  // 💡 這裡彈出提示，讓使用者知道複製成功
+                                  alert(`✅ 已複製 ${p.user_name} 的 Discord ID！\n內容：${p.contact_info}`);
+                                } else {
+                                  alert(`❌ 該成員尚未填寫聯繫資訊喔！`);
+                                }
+                              }}
+                              // 💡 新增了 cursor-pointer 讓使用者知道可以點擊，並加上 hover 變色效果
+                              className="mb-1 p-1.5 rounded-lg text-[8px] font-bold border-l-2 bg-[#FDFBF7] border-[#D35400] shadow-sm cursor-pointer hover:bg-[#F5EFE6] transition-colors group"
+                            >
                               <div className="flex justify-between items-center mb-0.5">
                                 <span className="truncate">{p.user_name}</span>
                                 <span className="text-[#D35400] shrink-0">Lv.{p.level}</span>
                               </div>
-                              <div className="flex flex-wrap gap-1">
-                                <span className="text-[#A67C52]">{p.job}</span>
-                                {p.bosses?.map(b => (
-                                  <span key={b} className="bg-[#F5EFE6] px-1 rounded-[2px] scale-90 origin-left text-[7px]">#{b}</span>
-                                ))}
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex flex-wrap gap-1">
+                                  <span className="text-[#A67C52]">{p.job}</span>
+                                  {p.bosses?.map(b => (
+                                    <span key={b} className="bg-[#F5EFE6] px-1 rounded-[2px] scale-90 origin-left text-[7px]">#{b}</span>
+                                 ))}
+                                </div>
+                                {/* 💡 這裡新增一行藍色字體顯示聯絡資訊，更直觀 */}
+                                {p.contact_info && (
+                                  <span className="text-blue-500 mt-0.5 flex items-center gap-1">
+                                    <span className="opacity-70 text-[6px]">DC:</span> {p.contact_info}
+                                  </span>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -317,6 +351,7 @@ function App() {
                             <span>{m.user_name} <span className="text-[#D35400] text-[8px] ml-1">Lv.{m.level}</span></span>
                             <span className="text-[#A67C52] font-medium">{m.job}</span>
                           </div>
+                          {m.contact_info && <div className="text-[7px] text-blue-500 mb-1 font-bold">Discord: {m.contact_info}</div>}
                           <div className="flex flex-wrap gap-1">
                             {m.bosses?.map(b => (
                               <span key={b} className="text-[7px] bg-[#FFF5F0] text-[#D35400] px-1.5 py-0.5 rounded border border-[#FFD8C4]">{b}</span>
