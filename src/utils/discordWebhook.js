@@ -8,10 +8,6 @@ const WEBHOOK_ALERT = 'https://discord.com/api/webhooks/1494038268344406116/bOpq
 
 const BOT_NAME = "遠征隊秘書";
 
-// 🌟 全新生成：遠征隊秘書專屬高質感 SVG 頭像 (Base64 編碼)
-// 設計元素：深棕色皮革、金色羽毛筆與捲軸圖騰
-const BOT_AVATAR_SVG = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjY0IiBjeTBoxNiIgcj0iNjAiIGZpbGw9IiM4QjQ1MTMiLz48Y2lyY2xlIGN4PSI2NCIgY3k9IjY0IiByPSI1NiIgc3Ryb2tlPSIjRkZEOzAwIiBzdHJva2Utd2lkdGg9IjQiLz48cGF0aCBmaWxsPSIjRkZEOzAwIiBkPSJNOTQuMjM1IDI5LjU5MWMtMS4xNy0xLjE2Mi0yLjg4Ni0xLjUzNC00LjcyNi0xLjExNEw2MS44NCA0MS45NzVsLTE1LjkyMy0xNS44Yy0xLjI1LTEuMjMtMy4xNDgtMS42LTQuNjU3LTEuMTJsLTMuMjMgMS4wM2MtMS41MjUuNDg1LTIuMjg5IDIuMTI0LTIuMDgyIDMuNzdsMS4wNzUgNy45NmMuMTkuMTI1LjMzMi4zNDguNDAzLjU2NGwxLjgzNSA1LjIzYy4zNjUuNzM0IDEuMDI5IDEuMzM1IDEuODA0IDEuNTE0bDkuMTczIDEuOTA2YzEuMDE3LjI2MyAyLjEyNi4wMyAyLjg4Ny0uNjUybDE2LjgzLTE1LjM2MyA5Ljg4NSAxNy41OTJjLS4zNS43NzctLjUxOSAxLjU1My0uNDgxIDIuNDlsLjQ1OCAxMS41Yy4xNTIgMy44MTMgMi4wMTIgNi4zNTQgNC44MDYgNy44NzVsLTMwLjIyNSA4Ljg4N2MtNS4wNSAxLjQ4NS04LjEwNyA2LjI5LTcuNDQ4IDExLjMzN2wuMDU4LjY4OWMuNjQzIDQuNTgzIDQuNTkyIDcuODkgOS4wNyA4LjIzMmwuNjk2LjA0OGwzMS43LTIuODgyYy43Ny4yNiAxLjY1NS40MzQgMi41NjMuNDcybDMuOTU5LjE3Yy44NTEuMDY3IDEuNjcuMDA2IDIuNDAzLS4yMDdsMS44MzcgMS44MDhjLjc5NC43OCAxLjc3MyAxLjIyMiAyLjgyIDEuMjg2bDEzLjEyOC44MDVjMS41NDUuMDk1IDIuOTk4LS43NzYgMy41MzUtMi4xOWwuNzk0LTIuMDYyYy40NDktMS4xNjQuMTcxLTIuNDUxLS42Ni0zLjE5OWwtMS44OTItMS44MDFjLjI1Ny0uODI0LjM3LTEuNzU0LjMwOC0yLjc0NWwtLjM5NC05LjgxOGMtLjEzNy0zLjM1MS0xLjcyLTUuNDk5LTQuMDM0LTcuMDAxbC05LjY0LTE0LjUxNyAxOC43MS05LjEzMmM0Ljc0LTIuMzg1IDUuNjItNi43IDMuMzE5LTguODU4ek03My40IDc1LjMyNWMuMzA4LTIuMjMtLjI2NS00LjI5OC0xLjYzLTUuODUxYy0xLjM2NS0xLjU1My0zLjM3Ni0yLjI3NS01LjcwNS0yLjA0M0w0OS4xODggNjkuN2MtMy4xMzIuMzA2LTUuNTM2IDIuODMyLTYuMTkxIDUuODNsLS4wNC4xODljLS43NzggMy42NjUgMS4zNjQgNi41ODUgNC45MDUgOC41MzJsMzUuNzUgMjAuMzU5Yy0uMTI3LjExNy0uMjU3LjI0LS4zOTguMzQ5bC0zLjU4NCAyLjc4N2MtNS4zNDMgNC4xNTYtMTMuNjM5IDEuOTE4LTE2LjU2OC00LjQ4OGwtNy44NzUtMTcuMTU0Yy0uNTUtMS4yLTIuMDA3LTIuMDE3LTMuNTMzLTEuODk4bC00LjY4NS4zNjVjLTEuNzg3LjE0LTIuOTQzIDIuMDE1LTIuNDAyIDMuOTZsNy42NTQgMTYuNjM4Yy42MSAxLjMyNCAxLjgyIDIuMjEgMy4xNzMgMi40NWw1LjMxLjkwOGMtLjAxMy41MS0uMTU2IDEuMDA3LS40NTYgMS40NDlsLTUuMTQ0IDcuODkyYy0uNzg1IDEuMi0uNzgxIDIuODMyLjAxNiA0LjAzbDEuNjcyIDIuNWMuNDU4LjY4OSAxLjIyNSAxLjExMiAyLjAxOSAxLjE0NWwuMjEyLjAwNmM4LjY5NC4yOTQgMTkuMTY2Ljg4MSAyNS44NTcgMS4yM2EuNjgxLjY4MSAwIDAgMCAuNzQ2LS43MzdsLjAxLS41MjNjLjM3LTIuNzg1LS4zOTMtNS41NDMtMi4wODgtOC4wODVsLTcuMTM3LTkuNjY5Yy0uNzA1LS45NTQtMS40OTYtMS43NjYtMi4zNDUtMi40MTljLjAyOS0uNTE2LjEzLS45ODcuMzM0LTEuNDE3bDUuMjgzLTguMDc4Yy44MjUtMS4yNy44NzMtMi45NS4xNC00LjMyem0tMjUuNzE2IDcuNzU2Yy0uOTAyLTEuMTQ0LTEuMDkyLTIuNzA0LS42MzMtMy45MzlsLjUxMi0xLjM4NGMuMzU2LS45NiAxLjI4LTEuNTkzIDIuMjU5LTEuNTkzIC4wODMgMCAuMTY4LjAwNC4yNTQuMDEybDkuMzMzIDEuMDFjMS45NjkuMjE0IDIuOTgxIDIuMjY4IDIuMDYgMy43NTVsLTkuNDY4IDkuMTUzYy0xLjI0MyAxLjIwMS0zLjA2NCAxLjIxNC00LjMxNS4wNTR6Ii8+PC9nPjwvc3ZnPg==";
-
 
 // ---------------------------------------------------------
 // 1. 個人更新班表的通知
@@ -74,7 +70,6 @@ export const sendPersonalUpdate = async (userName, selectedSlots, weekDateStr, b
 
     const content = {
         username: BOT_NAME,
-        avatar_url: BOT_AVATAR_SVG, // 🌟 使用全新 SVG 頭像
         embeds: [{
             title: `⚔️ Artale Raid Hub | ${weekLabel}`,
             description: `成員 ${userTag} 剛剛更新了可參加時段！`,
@@ -119,7 +114,6 @@ export const sendTeamReadyAlert = async (slotId, members, bossName) => {
 
     const content = {
         username: BOT_NAME,
-        avatar_url: BOT_AVATAR_SVG, // 🌟 使用全新 SVG 頭像
         content: `🚨 **【${bossName || 'BOSS 討伐'}】滿團確認！** 🚨\n請下列成員準備集合！`,
         embeds: [{
             title: `⚔️ 預定出發時間：週${dayName} ${time}`,
@@ -189,7 +183,6 @@ export const scheduleReminder = async (slotId, members, bossName, weekDateStr) =
     // 3. 準備送給 Discord 的最終訊息
     const content = {
         username: BOT_NAME,
-        avatar_url: BOT_AVATAR_SVG,
         content: `⏰ **【最後通牒：開戰倒數 1 小時】**\n🚨 **${bossName || 'BOSS 討伐'}** 預計在 **${time}** 準時開打！\n請下列成員確認裝備、藥水，準備上線集合：\n\n${tags}`
     };
 
