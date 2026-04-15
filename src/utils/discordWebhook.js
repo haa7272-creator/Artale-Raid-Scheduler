@@ -77,7 +77,7 @@ export const sendPersonalUpdate = async (userName, selectedSlots, weekDateStr, b
         avatar_url: BOT_AVATAR_SVG, // 🌟 使用全新 SVG 頭像
         embeds: [{
             title: `⚔️ Artale Raid Hub | ${weekLabel}`,
-            description: `成員 ${userTag} 剛剛更新了可參加時段！`, 
+            description: `成員 ${userTag} 剛剛更新了可參加時段！`,
             color: 0xD35400,
             fields: [
                 ...(hasBoss ? [{ name: "🎯 預定目標 (BOSS)", value: `**${bossName}**`, inline: true }] : []),
@@ -114,7 +114,7 @@ export const sendTeamReadyAlert = async (slotId, members, bossName) => {
         } else {
             tagFormat = `**${m.user_name}**`;
         }
-        return `🗡️ ${tagFormat}`; 
+        return `🗡️ ${tagFormat}`;
     }).join('\n'); // 一位一排
 
     const content = {
@@ -146,16 +146,16 @@ export const sendTeamReadyAlert = async (slotId, members, bossName) => {
 // ---------------------------------------------------------
 export const scheduleReminder = async (slotId, members, bossName, weekDateStr) => {
     // ⚠️ 貼上你剛剛在 Upstash 複製的那串 QSTASH_TOKEN
-    const QSTASH_TOKEN = "eyJVc2VySUQiOiI5NjIwMDI5ZC1jNWY4LTQxOWUtYjFjYS0xNDRiZjIxOGM2NDIiLCJQYXNzd29yZCI6IjI3OGRkNmRmMDg0YzQ3MWJiZjgwZDgxMWZjMWEwOWMyIn0="; 
+    const QSTASH_TOKEN = "eyJVc2VySUQiOiI5NjIwMDI5ZC1jNWY4LTQxOWUtYjFjYS0xNDRiZjIxOGM2NDIiLCJQYXNzd29yZCI6IjI3OGRkNmRmMDg0YzQ3MWJiZjgwZDgxMWZjMWEwOWMyIn0=";
 
     // 1. 精準計算開打時間的毫秒數
     const [dayName, time] = slotId.split('-');
     const daysMap = { '一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6 };
-    
+
     // 算出那天的確切日期
     const raidDate = new Date(weekDateStr);
     raidDate.setDate(raidDate.getDate() + daysMap[dayName]);
-    
+
     // 算出確切的小時與分鐘
     const [hours, minutes] = time.split(':');
     raidDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
@@ -183,7 +183,7 @@ export const scheduleReminder = async (slotId, members, bossName, weekDateStr) =
         } else {
             tagFormat = `**${m.user_name}**`;
         }
-        return `🗡️ ${tagFormat}`; 
+        return `🗡️ ${tagFormat}`;
     }).join('\n');
 
     // 3. 準備送給 Discord 的最終訊息
@@ -195,14 +195,18 @@ export const scheduleReminder = async (slotId, members, bossName, weekDateStr) =
 
     // 4. 交給 Upstash QStash 寄送未來信件
     try {
-        // 注意網址：我們把原本的 Discord Webhook 網址接在 QStash 網址後面
-        await fetch(`https://qstash.upstash.io/v2/publish/${WEBHOOK_ALERT}`, {
+        // 🌟 修正 1：換成你截圖上的「美國地區」專屬網址
+        const qstashUrl = `https://qstash-us-east-1.upstash.io/v2/publish/${WEBHOOK_ALERT}`;
+
+        // 🌟 修正 2：確保延遲時間絕對是正整數 (最少延遲 1 秒)，避免 QStash 報錯
+        const finalDelay = Math.max(1, delaySeconds);
+
+        await fetch(qstashUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${QSTASH_TOKEN}`,
                 'Content-Type': 'application/json',
-                // 🌟 神奇魔法：告訴郵差延遲幾秒後再寄出
-                'Upstash-Delay': `${delaySeconds}s` 
+                'Upstash-Delay': `${finalDelay}s`
             },
             body: JSON.stringify(content)
         });
