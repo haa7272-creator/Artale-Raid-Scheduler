@@ -105,8 +105,8 @@ function App() {
 
     // 🌟 神奇魔法：從 Supabase 登入資訊中挖出真實的 Discord ID
     const realDiscordId = session.user.identities?.find(i => i.provider === 'discord')?.id
-                        || session.user.user_metadata?.provider_id
-                        || session.user.user_metadata?.sub;
+      || session.user.user_metadata?.provider_id
+      || session.user.user_metadata?.sub;
 
     const { error } = await supabase.from('schedules').upsert({
       user_id: session.user.id,
@@ -131,8 +131,15 @@ function App() {
         const activeBossBtn = allButtons.find(btn => btn.classList.contains('bg-orange-600'));
         const finalBossName = activeBossBtn ? activeBossBtn.innerText : '';
 
-        // 🌟 1. 呼叫新的「個人更新通知」函數
-        sendPersonalUpdate(roleInfo.displayName || "未知成員", selectedSlots, weekDateStr, finalBossName);
+        // 🌟 呼叫個人更新通知，並傳入真實 Discord ID
+        sendPersonalUpdate(
+          roleInfo.displayName || "未知成員",
+          selectedSlots,
+          weekDateStr,
+          finalBossName,
+          realDiscordId,
+          roleInfo.contactInfo
+        );
 
         // 🌟 2. 檢查有沒有哪個時段剛好滿 6 人！
         const { data: updatedTeam } = await supabase.from('schedules').select('*').eq('week_date', weekDateStr);
@@ -141,7 +148,7 @@ function App() {
           selectedSlots.forEach(slotId => {
             const membersInSlot = updatedTeam.filter(p => p.slots?.includes(slotId));
             // 如果剛好 6 個人，觸發秘書大聲廣播！
-            if (membersInSlot.length === 6) {
+            if (membersInSlot.length >= 1) {
               sendTeamReadyAlert(slotId, membersInSlot, finalBossName);
             }
           });
@@ -156,7 +163,13 @@ function App() {
   }
 
   const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'discord' });
+    await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+      options: {
+        // 🌟 神奇語法：你在 localhost 點，就回 localhost；在正式網點，就回正式網
+        redirectTo: window.location.origin
+      }
+    });
   }
 
   const handleLogout = async () => {
