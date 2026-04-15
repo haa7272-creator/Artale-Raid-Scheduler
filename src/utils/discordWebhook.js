@@ -140,3 +140,74 @@ export const sendTeamReadyAlert = async (slotId, members, bossName) => {
         console.error('❌ 滿團廣播發送失敗:', error);
     }
 };
+
+// ---------------------------------------------------------
+// 3. ⏰ 新增：出團前 1 小時定時鬧鐘 (透過 Upstash QStash)
+// ---------------------------------------------------------
+export const scheduleReminder = async (slotId, members, bossName, weekDateStr) => {
+    // ⚠️ 貼上你剛剛在 Upstash 複製的那串 QSTASH_TOKEN
+    const QSTASH_TOKEN = "eyJVc2VySUQiOiI5NjIwMDI5ZC1jNWY4LTQxOWUtYjFjYS0xNDRiZjIxOGM2NDIiLCJQYXNzd29yZCI6IjI3OGRkNmRmMDg0YzQ3MWJiZjgwZDgxMWZjMWEwOWMyIn0="; 
+
+    // 1. 精準計算開打時間的毫秒數
+    const [dayName, time] = slotId.split('-');
+    const daysMap = { '一': 0, '二': 1, '三': 2, '四': 3, '五': 4, '六': 5, '日': 6 };
+    
+    // 算出那天的確切日期
+    const raidDate = new Date(weekDateStr);
+    raidDate.setDate(raidDate.getDate() + daysMap[dayName]);
+    
+    // 算出確切的小時與分鐘
+    const [hours, minutes] = time.split(':');
+    raidDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+    const raidTimeMs = raidDate.getTime();
+    const reminderTimeMs = raidTimeMs - (60 * 60 * 1000); // 減去 1 小時 (毫秒)
+    const nowMs = Date.now();
+
+    // 計算距離「提醒時間」還有幾秒
+    const delaySeconds = Math.floor((reminderTimeMs - nowMs) / 1000);
+
+    // 💡 防呆機制：如果距離開打已經不到 1 小時 (例如壓秒成團)，就不設鬧鐘了
+    if (delaySeconds <= 0) {
+        console.log("出團時間不到1小時，自動取消預約鬧鐘");
+        return;
+    }
+
+    // 2. 準備名單
+    const tags = members.map(m => {
+        let tagFormat = '';
+        if (m.discord_id) {
+            tagFormat = `<@${m.discord_id}>`;
+        } else if (/^\d{17,19}$/.test(m.contact_info)) {
+            tagFormat = `<@${m.contact_info}>`;
+        } else {
+            tagFormat = `**${m.user_name}**`;
+        }
+        return `🗡️ ${tagFormat}`; 
+    }).join('\n');
+
+    // 3. 準備送給 Discord 的最終訊息
+    const content = {
+        username: BOT_NAME,
+        avatar_url: BOT_AVATAR_SVG,
+        content: `⏰ **【最後通牒：開戰倒數 1 小時】**\n🚨 **${bossName || 'BOSS 討伐'}** 預計在 **${time}** 準時開打！\n請下列成員確認裝備、藥水，準備上線集合：\n\n${tags}`
+    };
+
+    // 4. 交給 Upstash QStash 寄送未來信件
+    try {
+        // 注意網址：我們把原本的 Discord Webhook 網址接在 QStash 網址後面
+        await fetch(`https://qstash.upstash.io/v2/publish/${WEBHOOK_ALERT}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${QSTASH_TOKEN}`,
+                'Content-Type': 'application/json',
+                // 🌟 神奇魔法：告訴郵差延遲幾秒後再寄出
+                'Upstash-Delay': `${delaySeconds}s` 
+            },
+            body: JSON.stringify(content)
+        });
+        console.log('✅ 1小時前鬧鐘預約成功！');
+    } catch (error) {
+        console.error('❌ 鬧鐘預約失敗:', error);
+    }
+};

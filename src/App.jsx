@@ -4,7 +4,7 @@ import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, T
 
 // 🌟 新增：把剛剛分出去的零件匯入進來
 import { BOSS_LIST, JOBS, DEFAULT_TIMES } from './config/constants';
-import { sendPersonalUpdate, sendTeamReadyAlert } from './utils/discordWebhook';
+import { sendPersonalUpdate, sendTeamReadyAlert, scheduleReminder } from './utils/discordWebhook';
 
 
 function App() {
@@ -149,7 +149,10 @@ function App() {
             const membersInSlot = updatedTeam.filter(p => p.slots?.includes(slotId));
             // 如果剛好 6 個人，觸發秘書大聲廣播！
             if (membersInSlot.length === 6) {
+              // 1. 立刻發送滿團通知
               sendTeamReadyAlert(slotId, membersInSlot, finalBossName);
+              // 2. 順便預約 1 小時前的鬧鐘！(把 weekDateStr 也傳過去算時間)
+              scheduleReminder(slotId, membersInSlot, finalBossName, weekDateStr);
             }
           });
         }
