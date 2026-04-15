@@ -148,7 +148,7 @@ function App() {
           selectedSlots.forEach(slotId => {
             const membersInSlot = updatedTeam.filter(p => p.slots?.includes(slotId));
             // 如果剛好 6 個人，觸發秘書大聲廣播！
-            if (membersInSlot.length >= 1) {
+            if (membersInSlot.length === 6) {
               sendTeamReadyAlert(slotId, membersInSlot, finalBossName);
             }
           });
@@ -591,7 +591,7 @@ function App() {
               </a>
 
               <span className="text-[10px] font-bold bg-[#8B4513]/10 text-[#8B4513] px-4 py-2.5 rounded-2xl border border-[#8B4513]/10">
-                v1.2.0 Build 20260415
+                v1.3.0 Build 20260416
               </span>
             </div>
           </div>
