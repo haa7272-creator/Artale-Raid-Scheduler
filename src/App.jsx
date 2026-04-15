@@ -103,10 +103,21 @@ function App() {
 
     setLoading(true);
 
-    // 🌟 神奇魔法：從 Supabase 登入資訊中挖出真實的 Discord ID
+    // 從 Supabase 登入資訊中挖出真實的 Discord ID
     const realDiscordId = session.user.identities?.find(i => i.provider === 'discord')?.id
       || session.user.user_metadata?.provider_id
       || session.user.user_metadata?.sub;
+
+    // 取得這名玩家「修改前」的舊資料，用來比對差異
+    const oldMe = allData.find(p => p.user_id === session.user.id);
+    const oldSlots = oldMe?.slots || [];
+
+    // 計算出「這次新增加的時段」與「這次被取消的時段」
+    const newlyAddedSlots = selectedSlots.filter(s => !oldSlots.includes(s));
+    const removedSlots = oldSlots.filter(s => !selectedSlots.includes(s));
+
+    // 判斷：如果完全沒有新增時段，且有取消時段，代表這是「純取消 (退團)」動作
+    const isOnlyCanceling = newlyAddedSlots.length === 0 && removedSlots.length > 0;
 
     const { error } = await supabase.from('schedules').upsert({
       user_id: session.user.id,
@@ -127,24 +138,27 @@ function App() {
     setTimeout(async () => {
       setLoading(false);
       if (!error) {
-        // ✅ 修正 1：不再抓取按鈕顏色，直接抓取當前玩家選擇的第一個 BOSS
+        // 不再抓取按鈕顏色，直接抓取當前玩家選擇的第一個 BOSS
         const finalBossName = roleInfo.bosses?.length > 0 ? roleInfo.bosses[0] : 'BOSS 討伐';
 
-        // 🌟 呼叫個人更新通知，並傳入真實 Discord ID
-        sendPersonalUpdate(
-          roleInfo.displayName || "未知成員",
-          selectedSlots,
-          weekDateStr,
-          finalBossName,
-          realDiscordId,
-          roleInfo.contactInfo
-        );
+        // 呼叫個人更新通知，並傳入真實 Discord ID；如果是「純取消」動作，就不發送個人戰報 (默默退團)
+        if (!isOnlyCanceling) {
+          sendPersonalUpdate(
+            roleInfo.displayName || "未知成員",
+            selectedSlots,
+            weekDateStr,
+            finalBossName,
+            realDiscordId,
+            roleInfo.contactInfo
+          );
+        }
 
-        // 🌟 2. 獲取最新資料庫數據，進行精準成團檢查
+        // 獲取最新資料庫數據，進行精準成團檢查
         const { data: updatedTeam } = await supabase.from('schedules').select('*').eq('week_date', weekDateStr);
 
         if (updatedTeam && finalBossName !== 'BOSS 討伐') {
-          selectedSlots.forEach(slotId => {
+          // 只針對「這次新加入」的時段去檢查滿團，避免滿團通知被重複觸發
+          newlyAddedSlots.forEach(slotId => {
             // ✅ 修正 2：先抓出同時段的所有人
             const membersInSlot = updatedTeam.filter(p => p.slots?.includes(slotId));
 
