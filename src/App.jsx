@@ -127,9 +127,8 @@ function App() {
     setTimeout(async () => {
       setLoading(false);
       if (!error) {
-        const allButtons = Array.from(document.querySelectorAll('button'));
-        const activeBossBtn = allButtons.find(btn => btn.classList.contains('bg-orange-600'));
-        const finalBossName = activeBossBtn ? activeBossBtn.innerText : '';
+        // ✅ 修正 1：不再抓取按鈕顏色，直接抓取當前玩家選擇的第一個 BOSS
+        const finalBossName = roleInfo.bosses?.length > 0 ? roleInfo.bosses[0] : 'BOSS 討伐';
 
         // 🌟 呼叫個人更新通知，並傳入真實 Discord ID
         sendPersonalUpdate(
@@ -141,18 +140,23 @@ function App() {
           roleInfo.contactInfo
         );
 
-        // 🌟 2. 檢查有沒有哪個時段剛好滿 6 人！
+        // 🌟 2. 獲取最新資料庫數據，進行精準成團檢查
         const { data: updatedTeam } = await supabase.from('schedules').select('*').eq('week_date', weekDateStr);
 
-        if (updatedTeam) {
+        if (updatedTeam && finalBossName !== 'BOSS 討伐') {
           selectedSlots.forEach(slotId => {
+            // ✅ 修正 2：先抓出同時段的所有人
             const membersInSlot = updatedTeam.filter(p => p.slots?.includes(slotId));
-            // 如果剛好 6 個人，觸發秘書大聲廣播！
-            if (membersInSlot.length === 6) {
+
+            // ✅ 修正 3：進一步過濾「想打同一個 BOSS」的人
+            const sameBossMembers = membersInSlot.filter(p => p.bosses?.includes(finalBossName));
+
+            // ✅ 修正 4：只有「同 BOSS」剛好滿 6 人，才觸發廣播與鬧鐘
+            if (sameBossMembers.length === 6) {
               // 1. 立刻發送滿團通知
-              sendTeamReadyAlert(slotId, membersInSlot, finalBossName);
-              // 2. 順便預約 1 小時前的鬧鐘！(把 weekDateStr 也傳過去算時間)
-              scheduleReminder(slotId, membersInSlot, finalBossName, weekDateStr);
+              sendTeamReadyAlert(slotId, sameBossMembers, finalBossName);
+              // 2. 預約 1 小時前的鬧鐘
+              scheduleReminder(slotId, sameBossMembers, finalBossName, weekDateStr);
             }
           });
         }
