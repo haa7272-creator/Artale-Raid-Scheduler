@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, User, Loader2 } from 'lucide-react';
 
-import React, { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import { Calendar as CalIcon, Clock, LogIn, LogOut, Save, Sword, Coffee, Plus, Trash2, Users, ChevronLeft, ChevronRight, Info, Flag, User, Loader2 } from 'lucide-react';
-
 // 🌟 新增：把剛剛分出去的零件匯入進來
 import { BOSS_LIST, JOBS, DEFAULT_TIMES } from './config/constants';
 import { sendPersonalUpdate, sendTeamReadyAlert } from './utils/discordWebhook';
